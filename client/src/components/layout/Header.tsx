@@ -1,71 +1,61 @@
-import { Link, useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { PlusIcon, BellIcon, DatabaseIcon } from "lucide-react";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Bell, Cog, Search, Menu, SlidersHorizontal } from "lucide-react";
+import { Button } from "../ui/button";
+import AdvancedSearch from "../datasets/AdvancedSearch";
 
-const Header = () => {
-  const [location] = useLocation();
+interface HeaderProps {
+  sidebarOpen: boolean;
+  setSidebarOpen: (open: boolean) => void;
+}
 
-  const isActive = (path: string) => {
-    return location === path;
-  };
+export default function Header({ sidebarOpen, setSidebarOpen }: HeaderProps) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
 
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <div className="flex items-center">
-            <div className="flex-shrink-0 flex items-center">
-              <DatabaseIcon className="h-8 w-8 text-primary-600" />
-              <span className="ml-2 text-xl font-bold text-gray-900">DataMeta AI</span>
-            </div>
-            <nav className="hidden md:ml-8 md:flex md:space-x-8">
-              <Link href="/">
-                <a className={`px-1 pt-1 border-b-2 text-sm font-medium ${isActive("/") ? "text-primary-600 border-primary-500" : "text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300"}`}>
-                  Dashboard
-                </a>
-              </Link>
-              <Link href="/datasets">
-                <a className={`px-1 pt-1 border-b-2 text-sm font-medium ${isActive("/datasets") ? "text-primary-600 border-primary-500" : "text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300"}`}>
-                  Datasets
-                </a>
-              </Link>
-              <Link href="/documentation">
-                <a className={`px-1 pt-1 border-b-2 text-sm font-medium ${isActive("/documentation") ? "text-primary-600 border-primary-500" : "text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300"}`}>
-                  Documentation
-                </a>
-              </Link>
-              <Link href="/api">
-                <a className={`px-1 pt-1 border-b-2 text-sm font-medium ${isActive("/api") ? "text-primary-600 border-primary-500" : "text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300"}`}>
-                  API
-                </a>
-              </Link>
-            </nav>
+    <header className="z-10 py-4 bg-white shadow-sm lg:static lg:overflow-y-visible">
+      <div className="px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+        <button onClick={() => setSidebarOpen(true)} className="text-slate-500 focus:outline-none lg:hidden">
+          <Menu className="h-6 w-6" />
+        </button>
+        
+        <div className="relative w-full max-w-md mx-4 hidden sm:block">
+          <Input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            type="text"
+            className="w-full rounded-lg border border-slate-300 bg-white pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            placeholder="Search datasets..."
+          />
+          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400">
+            <Search className="h-4 w-4" />
           </div>
+          <button 
+            onClick={() => setShowAdvancedSearch(!showAdvancedSearch)} 
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-primary-500"
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+          </button>
+        </div>
+        
+        <div className="flex items-center space-x-4">
+          <button className="p-1 rounded-full text-slate-400 hover:text-slate-500">
+            <Bell className="h-5 w-5" />
+          </button>
+          <button className="p-1 rounded-full text-slate-400 hover:text-slate-500">
+            <Cog className="h-5 w-5" />
+          </button>
           <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <Button className="relative inline-flex items-center">
-                <PlusIcon className="-ml-1 mr-2 h-4 w-4" />
-                <span>New Project</span>
-              </Button>
-            </div>
-            <div className="ml-4 flex items-center md:ml-6">
-              <button className="p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
-                <BellIcon className="h-6 w-6" />
-              </button>
-              <div className="ml-3 relative">
-                <div>
-                  <Avatar>
-                    <AvatarFallback>JD</AvatarFallback>
-                  </Avatar>
-                </div>
-              </div>
+            <span className="hidden md:block text-sm font-medium mr-2">Jane Researcher</span>
+            <div className="h-8 w-8 rounded-full bg-primary-600 flex items-center justify-center text-white">
+              <span className="text-sm font-medium">JR</span>
             </div>
           </div>
         </div>
       </div>
+      
+      {showAdvancedSearch && <AdvancedSearch onClose={() => setShowAdvancedSearch(false)} />}
     </header>
   );
-};
-
-export default Header;
+}
