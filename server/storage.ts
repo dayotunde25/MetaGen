@@ -1,82 +1,83 @@
 import { 
-  users, type User, type InsertUser, 
-  datasets, type Dataset, type InsertDataset,
-  metadata, type Metadata, type InsertMetadata,
-  searchQueries, type SearchQuery, type InsertSearchQuery
+  User, InsertUser, 
+  Dataset, InsertDataset,
+  Metadata, InsertMetadata,
+  ProcessingHistory, InsertProcessingHistory
 } from "@shared/schema";
 
 export interface IStorage {
-  // User operations
+  // User Operations
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-
-  // Dataset operations
+  
+  // Dataset Operations
   getAllDatasets(): Promise<Dataset[]>;
   getDataset(id: number): Promise<Dataset | undefined>;
-  getDatasetsBySource(source: string): Promise<Dataset[]>;
-  getDatasetsByCategory(category: string): Promise<Dataset[]>;
-  getDatasetsByType(dataType: string): Promise<Dataset[]>;
+  getDatasetsByStatus(status: string): Promise<Dataset[]>;
   createDataset(dataset: InsertDataset): Promise<Dataset>;
-  updateDataset(id: number, dataset: Partial<Dataset>): Promise<Dataset | undefined>;
-  deleteDataset(id: number): Promise<boolean>;
-
-  // Metadata operations
+  updateDatasetStatus(id: number, status: string, progress?: number, etc?: string): Promise<Dataset | undefined>;
+  getRecentDatasets(limit: number): Promise<Dataset[]>;
+  searchDatasets(query: string, filters?: any): Promise<Dataset[]>;
+  
+  // Metadata Operations
   getMetadata(id: number): Promise<Metadata | undefined>;
   getMetadataByDatasetId(datasetId: number): Promise<Metadata | undefined>;
   createMetadata(metadata: InsertMetadata): Promise<Metadata>;
-  updateMetadata(id: number, metadata: Partial<Metadata>): Promise<Metadata | undefined>;
-
-  // Search operations
-  saveSearchQuery(query: InsertSearchQuery): Promise<SearchQuery>;
-  getRecentSearchQueries(limit: number): Promise<SearchQuery[]>;
+  
+  // Processing History Operations
+  getProcessingHistoryByDatasetId(datasetId: number): Promise<ProcessingHistory[]>;
+  createProcessingHistory(history: InsertProcessingHistory): Promise<ProcessingHistory>;
+  updateProcessingHistory(id: number, status: string, details?: string, endTime?: Date): Promise<ProcessingHistory | undefined>;
+  getProcessingStatistics(): Promise<any>;
 }
 
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private datasets: Map<number, Dataset>;
-  private metadataItems: Map<number, Metadata>;
-  private searches: Map<number, SearchQuery>;
+  private metadataRecords: Map<number, Metadata>;
+  private processingHistories: Map<number, ProcessingHistory>;
   
-  private userCurrentId: number;
-  private datasetCurrentId: number;
-  private metadataCurrentId: number;
-  private searchCurrentId: number;
+  private userIdCounter: number;
+  private datasetIdCounter: number;
+  private metadataIdCounter: number;
+  private processingHistoryIdCounter: number;
 
   constructor() {
     this.users = new Map();
     this.datasets = new Map();
-    this.metadataItems = new Map();
-    this.searches = new Map();
+    this.metadataRecords = new Map();
+    this.processingHistories = new Map();
     
-    this.userCurrentId = 1;
-    this.datasetCurrentId = 1;
-    this.metadataCurrentId = 1;
-    this.searchCurrentId = 1;
-
-    // Initialize with some sample datasets
-    this.seedInitialData();
+    this.userIdCounter = 1;
+    this.datasetIdCounter = 1;
+    this.metadataIdCounter = 1;
+    this.processingHistoryIdCounter = 1;
+    
+    // Initialize with sample data
+    this.initializeSampleData();
   }
 
-  // User operations
+  // User Operations
   async getUser(id: number): Promise<User | undefined> {
     return this.users.get(id);
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     return Array.from(this.users.values()).find(
-      (user) => user.username === username,
+      (user) => user.username === username
     );
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.userCurrentId++;
-    const user: User = { ...insertUser, id };
+    const id = this.userIdCounter++;
+    const now = new Date();
+    const user: User = { ...insertUser, id, createdAt: now };
     this.users.set(id, user);
     return user;
   }
 
-  // Dataset operations
+  // Dataset Operations
   async getAllDatasets(): Promise<Dataset[]> {
     return Array.from(this.datasets.values());
   }
@@ -85,267 +86,464 @@ export class MemStorage implements IStorage {
     return this.datasets.get(id);
   }
 
-  async getDatasetsBySource(source: string): Promise<Dataset[]> {
-    return Array.from(this.datasets.values())
-      .filter(dataset => dataset.source.toLowerCase().includes(source.toLowerCase()));
-  }
-
-  async getDatasetsByCategory(category: string): Promise<Dataset[]> {
-    return Array.from(this.datasets.values())
-      .filter(dataset => dataset.category.toLowerCase() === category.toLowerCase());
-  }
-
-  async getDatasetsByType(dataType: string): Promise<Dataset[]> {
-    return Array.from(this.datasets.values())
-      .filter(dataset => dataset.dataType.toLowerCase() === dataType.toLowerCase());
+  async getDatasetsByStatus(status: string): Promise<Dataset[]> {
+    return Array.from(this.datasets.values()).filter(
+      (dataset) => dataset.status === status
+    );
   }
 
   async createDataset(insertDataset: InsertDataset): Promise<Dataset> {
-    const id = this.datasetCurrentId++;
+    const id = this.datasetIdCounter++;
     const now = new Date();
-    const dataset: Dataset = { 
+    const dataset: Dataset = {
+      ...insertDataset,
       id,
-      title: insertDataset.title,
-      description: insertDataset.description,
-      source: insertDataset.source,
-      sourceUrl: insertDataset.sourceUrl,
-      dataType: insertDataset.dataType,
-      category: insertDataset.category,
-      size: insertDataset.size || null,
-      format: insertDataset.format || null,
-      recordCount: insertDataset.recordCount || null,
-      fairCompliant: insertDataset.fairCompliant || null,
-      metadataQuality: insertDataset.metadataQuality || null,
+      status: "pending",
+      progress: 0,
       createdAt: now,
       updatedAt: now
     };
+    
     this.datasets.set(id, dataset);
     return dataset;
   }
 
-  async updateDataset(id: number, datasetUpdate: Partial<Dataset>): Promise<Dataset | undefined> {
-    const existingDataset = this.datasets.get(id);
-    if (!existingDataset) return undefined;
-
+  async updateDatasetStatus(id: number, status: string, progress?: number, etc?: string): Promise<Dataset | undefined> {
+    const dataset = this.datasets.get(id);
+    if (!dataset) return undefined;
+    
     const updatedDataset: Dataset = {
-      ...existingDataset,
-      ...datasetUpdate,
+      ...dataset,
+      status,
+      progress: progress !== undefined ? progress : dataset.progress,
+      estimatedTimeToCompletion: etc !== undefined ? etc : dataset.estimatedTimeToCompletion,
       updatedAt: new Date()
     };
+    
     this.datasets.set(id, updatedDataset);
     return updatedDataset;
   }
 
-  async deleteDataset(id: number): Promise<boolean> {
-    return this.datasets.delete(id);
-  }
-
-  // Metadata operations
-  async getMetadata(id: number): Promise<Metadata | undefined> {
-    return this.metadataItems.get(id);
-  }
-
-  async getMetadataByDatasetId(datasetId: number): Promise<Metadata | undefined> {
-    return Array.from(this.metadataItems.values())
-      .find(metadata => metadata.datasetId === datasetId);
-  }
-
-  async createMetadata(insertMetadata: InsertMetadata): Promise<Metadata> {
-    const id = this.metadataCurrentId++;
-    const now = new Date();
-    const metadata: Metadata = {
-      id,
-      datasetId: insertMetadata.datasetId,
-      schemaOrgJson: insertMetadata.schemaOrgJson,
-      fairScores: insertMetadata.fairScores,
-      keywords: insertMetadata.keywords || null,
-      variableMeasured: insertMetadata.variableMeasured || null,
-      temporalCoverage: insertMetadata.temporalCoverage || null,
-      spatialCoverage: insertMetadata.spatialCoverage || null,
-      license: insertMetadata.license || null,
-      createdAt: now,
-      updatedAt: now
-    };
-    this.metadataItems.set(id, metadata);
-    return metadata;
-  }
-
-  async updateMetadata(id: number, metadataUpdate: Partial<Metadata>): Promise<Metadata | undefined> {
-    const existingMetadata = this.metadataItems.get(id);
-    if (!existingMetadata) return undefined;
-
-    const updatedMetadata: Metadata = {
-      ...existingMetadata,
-      ...metadataUpdate,
-      updatedAt: new Date()
-    };
-    this.metadataItems.set(id, updatedMetadata);
-    return updatedMetadata;
-  }
-
-  // Search operations
-  async saveSearchQuery(insertSearchQuery: InsertSearchQuery): Promise<SearchQuery> {
-    const id = this.searchCurrentId++;
-    const now = new Date();
-    const searchQuery: SearchQuery = {
-      ...insertSearchQuery,
-      id,
-      createdAt: now
-    };
-    this.searches.set(id, searchQuery);
-    return searchQuery;
-  }
-
-  async getRecentSearchQueries(limit: number): Promise<SearchQuery[]> {
-    return Array.from(this.searches.values())
-      .sort((a, b) => {
-        if (!a.createdAt || !b.createdAt) return 0;
-        return b.createdAt.getTime() - a.createdAt.getTime();
-      })
+  async getRecentDatasets(limit: number): Promise<Dataset[]> {
+    return Array.from(this.datasets.values())
+      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
       .slice(0, limit);
   }
 
-  // Seed initial data
-  private seedInitialData() {
-    // Climate Change dataset
+  async searchDatasets(query: string, filters?: any): Promise<Dataset[]> {
+    let results = Array.from(this.datasets.values());
+    
+    if (query) {
+      const lowerQuery = query.toLowerCase();
+      results = results.filter(dataset => 
+        dataset.title.toLowerCase().includes(lowerQuery) ||
+        (dataset.description && dataset.description.toLowerCase().includes(lowerQuery)) ||
+        dataset.source.toLowerCase().includes(lowerQuery) ||
+        (dataset.keywords && dataset.keywords.some(keyword => keyword.toLowerCase().includes(lowerQuery)))
+      );
+    }
+    
+    if (filters) {
+      if (filters.format) {
+        results = results.filter(dataset => 
+          dataset.formats && dataset.formats.includes(filters.format)
+        );
+      }
+      
+      if (filters.category) {
+        results = results.filter(dataset => 
+          dataset.category === filters.category
+        );
+      }
+      
+      if (filters.dateRange) {
+        const now = new Date();
+        let fromDate = new Date();
+        
+        switch (filters.dateRange) {
+          case 'past-day':
+            fromDate.setDate(now.getDate() - 1);
+            break;
+          case 'past-week':
+            fromDate.setDate(now.getDate() - 7);
+            break;
+          case 'past-month':
+            fromDate.setMonth(now.getMonth() - 1);
+            break;
+          case 'past-year':
+            fromDate.setFullYear(now.getFullYear() - 1);
+            break;
+        }
+        
+        results = results.filter(dataset => 
+          dataset.updatedAt >= fromDate
+        );
+      }
+    }
+    
+    return results;
+  }
+
+  // Metadata Operations
+  async getMetadata(id: number): Promise<Metadata | undefined> {
+    return this.metadataRecords.get(id);
+  }
+
+  async getMetadataByDatasetId(datasetId: number): Promise<Metadata | undefined> {
+    return Array.from(this.metadataRecords.values()).find(
+      (metadata) => metadata.datasetId === datasetId
+    );
+  }
+
+  async createMetadata(insertMetadata: InsertMetadata): Promise<Metadata> {
+    const id = this.metadataIdCounter++;
+    const now = new Date();
+    const metadata: Metadata = {
+      ...insertMetadata,
+      id,
+      createdAt: now
+    };
+    
+    this.metadataRecords.set(id, metadata);
+    return metadata;
+  }
+
+  // Processing History Operations
+  async getProcessingHistoryByDatasetId(datasetId: number): Promise<ProcessingHistory[]> {
+    return Array.from(this.processingHistories.values())
+      .filter(history => history.datasetId === datasetId)
+      .sort((a, b) => b.startTime.getTime() - a.startTime.getTime());
+  }
+
+  async createProcessingHistory(insertHistory: InsertProcessingHistory): Promise<ProcessingHistory> {
+    const id = this.processingHistoryIdCounter++;
+    const history: ProcessingHistory = {
+      ...insertHistory,
+      id
+    };
+    
+    this.processingHistories.set(id, history);
+    return history;
+  }
+
+  async updateProcessingHistory(id: number, status: string, details?: string, endTime?: Date): Promise<ProcessingHistory | undefined> {
+    const history = this.processingHistories.get(id);
+    if (!history) return undefined;
+    
+    const updatedHistory: ProcessingHistory = {
+      ...history,
+      status,
+      details: details !== undefined ? details : history.details,
+      endTime: endTime || new Date()
+    };
+    
+    this.processingHistories.set(id, updatedHistory);
+    return updatedHistory;
+  }
+
+  async getProcessingStatistics(): Promise<any> {
+    const allDatasets = Array.from(this.datasets.values());
+    const total = allDatasets.length;
+    const processed = allDatasets.filter(d => d.status === 'processed').length;
+    const processing = allDatasets.filter(d => ['downloading', 'structuring', 'generating'].includes(d.status)).length;
+    const failed = allDatasets.filter(d => d.status === 'failed').length;
+    
+    // Calculate percentage changes (mock data for now)
+    return {
+      total,
+      processed,
+      processing,
+      failed,
+      totalChange: 12,
+      processedChange: 8,
+      failedChange: -30
+    };
+  }
+
+  // Helper method to initialize sample data
+  private initializeSampleData() {
+    // Admin user
+    const adminUser: InsertUser = {
+      username: 'admin',
+      password: 'password123', // In a real app, this would be hashed
+      email: 'admin@research.org',
+      fullName: 'Research Admin'
+    };
+    this.createUser(adminUser);
+    
+    // Sample datasets
+    const covidDataset: InsertDataset = {
+      title: 'COVID-19 Global Dataset',
+      description: 'Comprehensive COVID-19 data including cases, deaths, and recoveries globally.',
+      source: 'Johns Hopkins University',
+      sourceUrl: 'https://github.com/CSSEGISandData/COVID-19',
+      category: 'Healthcare',
+      size: '2.3 GB',
+      formats: ['CSV', 'JSON'],
+      keywords: ['COVID-19', 'coronavirus', 'pandemic', 'epidemiology', 'public health', 'global']
+    };
+    
     const climateDataset: InsertDataset = {
-      title: "Climate Change: Global Temperature Time Series",
-      description: "Comprehensive dataset of global temperature measurements spanning 150 years.",
-      source: "National Oceanic and Atmospheric Administration (NOAA)",
-      sourceUrl: "https://data.noaa.gov/dataset/global-temperature-time-series",
-      dataType: "Time Series",
-      category: "Climate",
-      size: "2.7 GB",
-      format: "CSV, JSON, NetCDF",
-      recordCount: 15768945,
-      fairCompliant: true,
-      metadataQuality: 88
+      title: 'Global Surface Temperature',
+      description: 'Long-term global surface temperature anomalies with baseline period 1951-1980.',
+      source: 'NASA GISS',
+      sourceUrl: 'https://data.giss.nasa.gov/gistemp/',
+      category: 'Climate',
+      size: '4.7 GB',
+      formats: ['NetCDF', 'CSV'],
+      keywords: ['climate', 'temperature', 'global warming', 'earth science']
     };
     
-    const climateDatasetEntity = this.createDataset(climateDataset);
-    
-    // Voice dataset
-    const voiceDataset: InsertDataset = {
-      title: "Common Voice Speech Corpus",
-      description: "Multi-language speech dataset with 13,905 hours of validated recordings.",
-      source: "Mozilla Foundation",
-      sourceUrl: "https://commonvoice.mozilla.org/datasets",
-      dataType: "Audio",
-      category: "NLP",
-      size: "76.4 GB",
-      format: "MP3, JSON, TSV",
-      recordCount: 13905,
-      fairCompliant: true,
-      metadataQuality: 92
+    const economicsDataset: InsertDataset = {
+      title: 'World Development Indicators',
+      description: 'Economic, social, and environmental indicators for countries worldwide since 1960.',
+      source: 'World Bank',
+      sourceUrl: 'https://datacatalog.worldbank.org/dataset/world-development-indicators',
+      category: 'Economics',
+      size: '1.8 GB',
+      formats: ['Excel', 'JSON'],
+      keywords: ['economics', 'development', 'global', 'indicators', 'social', 'environmental']
     };
     
-    const voiceDatasetEntity = this.createDataset(voiceDataset);
-
-    // Add metadata for climate dataset
-    climateDatasetEntity.then(dataset => {
-      this.createMetadata({
+    const satelliteDataset: InsertDataset = {
+      title: 'Satellite Imagery Dataset',
+      description: 'High-resolution satellite imagery for environmental monitoring.',
+      source: 'NASA Earth Data',
+      sourceUrl: 'https://earthdata.nasa.gov/',
+      category: 'Earth Science',
+      size: '2.3 GB',
+      formats: ['GeoTIFF', 'HDF5'],
+      keywords: ['satellite', 'imagery', 'remote sensing', 'earth observation']
+    };
+    
+    const genomicDataset: InsertDataset = {
+      title: 'Genomic Sequencing Data',
+      description: 'Comprehensive genomic sequencing data for medical research.',
+      source: 'NCBI',
+      sourceUrl: 'https://www.ncbi.nlm.nih.gov/',
+      category: 'Genomics',
+      size: '6.7 GB',
+      formats: ['FASTQ', 'BAM'],
+      keywords: ['genomics', 'sequencing', 'biology', 'medicine']
+    };
+    
+    const socialMediaDataset: InsertDataset = {
+      title: 'Social Media Analytics',
+      description: 'Dataset containing social media interactions and sentiment analysis.',
+      source: 'Kaggle',
+      sourceUrl: 'https://kaggle.com/datasets',
+      category: 'Social Sciences',
+      size: '1.2 GB',
+      formats: ['CSV', 'JSON'],
+      keywords: ['social media', 'analytics', 'sentiment', 'interactions']
+    };
+    
+    // Create the datasets and set their status
+    this.createDataset(covidDataset).then(dataset => {
+      this.updateDatasetStatus(dataset.id, 'processed', 100);
+      
+      // Add metadata for this dataset
+      const metadataInsert: InsertMetadata = {
         datasetId: dataset.id,
         schemaOrgJson: {
           "@context": "https://schema.org/",
           "@type": "Dataset",
-          "name": "Climate Change: Global Temperature Time Series",
-          "description": "Comprehensive dataset of global temperature measurements spanning 150 years.",
-          "url": "https://data.noaa.gov/dataset/global-temperature-time-series",
-          "sameAs": "https://doi.org/10.7289/V5KD1VF2",
-          "keywords": [
-            "climate change",
-            "global warming",
-            "temperature",
-            "time series",
-            "meteorology"
-          ],
+          "name": "COVID-19 Global Dataset",
+          "description": "This dataset contains global confirmed cases, recoveries, and deaths due to COVID-19, collected from various official sources.",
           "creator": {
             "@type": "Organization",
-            "name": "National Oceanic and Atmospheric Administration",
-            "url": "https://www.noaa.gov/"
+            "name": "Johns Hopkins University",
+            "url": "https://www.jhu.edu/"
           },
-          "datePublished": "2023-07-15",
+          "publisher": {
+            "@type": "Organization",
+            "name": "Johns Hopkins CSSE",
+            "url": "https://systems.jhu.edu/"
+          },
+          "datePublished": "2020-03-23",
+          "dateModified": "2023-01-15",
           "license": "https://creativecommons.org/licenses/by/4.0/",
-          "variableMeasured": [
-            "Average global temperature",
-            "Land temperature",
-            "Ocean temperature",
-            "Temperature anomaly"
-          ],
-          "temporalCoverage": "1850-01-01/2023-06-30",
-          "spatialCoverage": {
-            "@type": "Place",
-            "geo": {
-              "@type": "GeoShape",
-              "box": "-90 -180 90 180"
-            }
-          }
+          "keywords": ["COVID-19", "coronavirus", "pandemic", "epidemiology", "public health", "global"]
         },
-        fairScores: {
+        fairAssessment: {
           findable: 95,
-          accessible: 85,
-          interoperable: 90,
-          reusable: 80
+          accessible: 90,
+          interoperable: 85,
+          reusable: 92,
+          overall: 91
         },
-        keywords: ["climate change", "global warming", "temperature", "time series", "meteorology"],
-        variableMeasured: ["Average global temperature", "Land temperature", "Ocean temperature", "Temperature anomaly"],
-        temporalCoverage: "1850-01-01/2023-06-30",
-        spatialCoverage: {
-          "@type": "Place",
-          "geo": {
-            "@type": "GeoShape",
-            "box": "-90 -180 90 180"
-          }
-        },
-        license: "CC BY 4.0"
-      });
+        dataStructure: [
+          { field: "date", type: "Date (YYYY-MM-DD)", description: "Date of observation" },
+          { field: "country_region", type: "String", description: "Country or region name" },
+          { field: "province_state", type: "String", description: "Province or state (if applicable)" },
+          { field: "lat", type: "Float", description: "Latitude coordinate" },
+          { field: "long", type: "Float", description: "Longitude coordinate" }
+        ],
+        isFairCompliant: true,
+        creator: "Johns Hopkins University",
+        publisher: "Johns Hopkins CSSE",
+        publicationDate: "2020-03-23",
+        lastUpdated: "2023-01-15",
+        language: "English",
+        license: "CC BY 4.0",
+        temporalCoverage: "2020-01-22/2023-01-15",
+        spatialCoverage: "Global"
+      };
+      this.createMetadata(metadataInsert);
+      
+      // Add processing history
+      const history: InsertProcessingHistory = {
+        datasetId: dataset.id,
+        operation: 'download',
+        status: 'success',
+        details: 'Downloaded from JHU GitHub repository',
+        startTime: new Date(Date.now() - 1000000),
+        endTime: new Date(Date.now() - 900000)
+      };
+      this.createProcessingHistory(history);
+      
+      const history2: InsertProcessingHistory = {
+        datasetId: dataset.id,
+        operation: 'structure',
+        status: 'success',
+        details: 'Structured according to schema.org standards',
+        startTime: new Date(Date.now() - 800000),
+        endTime: new Date(Date.now() - 700000)
+      };
+      this.createProcessingHistory(history2);
+      
+      const history3: InsertProcessingHistory = {
+        datasetId: dataset.id,
+        operation: 'metadata_generation',
+        status: 'success',
+        details: 'Generated comprehensive metadata',
+        startTime: new Date(Date.now() - 600000),
+        endTime: new Date(Date.now() - 500000)
+      };
+      this.createProcessingHistory(history3);
     });
-
-    // Add metadata for voice dataset
-    voiceDatasetEntity.then(dataset => {
-      this.createMetadata({
+    
+    this.createDataset(climateDataset).then(dataset => {
+      this.updateDatasetStatus(dataset.id, 'processing', 67, '~12 minutes');
+    });
+    
+    this.createDataset(economicsDataset).then(dataset => {
+      this.updateDatasetStatus(dataset.id, 'processed', 100);
+      
+      // Add metadata for this dataset
+      const metadataInsert: InsertMetadata = {
         datasetId: dataset.id,
         schemaOrgJson: {
           "@context": "https://schema.org/",
           "@type": "Dataset",
-          "name": "Common Voice Speech Corpus",
-          "description": "Multi-language speech dataset with 13,905 hours of validated recordings.",
-          "url": "https://commonvoice.mozilla.org/datasets",
-          "sameAs": "https://doi.org/10.5281/zenodo.2499178",
-          "keywords": [
-            "speech",
-            "audio",
-            "voice",
-            "language",
-            "NLP",
-            "corpus"
-          ],
+          "name": "World Development Indicators",
+          "description": "Economic, social, and environmental indicators for countries worldwide since 1960.",
           "creator": {
             "@type": "Organization",
-            "name": "Mozilla Foundation",
-            "url": "https://foundation.mozilla.org/"
+            "name": "World Bank",
+            "url": "https://www.worldbank.org/"
           },
-          "datePublished": "2023-08-03",
+          "publisher": {
+            "@type": "Organization",
+            "name": "World Bank Group",
+            "url": "https://www.worldbank.org/"
+          },
+          "datePublished": "1960-01-01",
+          "dateModified": "2023-01-15",
           "license": "https://creativecommons.org/licenses/by/4.0/",
-          "variableMeasured": [
-            "Speech audio",
-            "Speaker demographics",
-            "Speech transcriptions",
-            "Language"
-          ],
-          "temporalCoverage": "2017-01-01/2023-07-30"
+          "keywords": ["economics", "development", "global", "indicators", "social", "environmental"]
         },
-        fairScores: {
-          findable: 92,
+        fairAssessment: {
+          findable: 90,
           accessible: 95,
           interoperable: 88,
-          reusable: 93
+          reusable: 92,
+          overall: 91
         },
-        keywords: ["speech", "audio", "voice", "language", "NLP", "corpus"],
-        variableMeasured: ["Speech audio", "Speaker demographics", "Speech transcriptions", "Language"],
-        temporalCoverage: "2017-01-01/2023-07-30",
-        license: "CC BY 4.0"
-      });
+        dataStructure: [],
+        isFairCompliant: true,
+        creator: "World Bank",
+        publisher: "World Bank Group",
+        publicationDate: "1960-01-01",
+        lastUpdated: "2023-01-15",
+        language: "English",
+        license: "CC BY 4.0",
+        temporalCoverage: "1960-01-01/2023-01-15",
+        spatialCoverage: "Global"
+      };
+      this.createMetadata(metadataInsert);
+    });
+    
+    this.createDataset(satelliteDataset).then(dataset => {
+      this.updateDatasetStatus(dataset.id, 'downloading', 45, '~35 minutes');
+      
+      // Add processing history
+      const history: InsertProcessingHistory = {
+        datasetId: dataset.id,
+        operation: 'download',
+        status: 'in_progress',
+        details: 'Downloading from NASA Earth Data repository',
+        startTime: new Date(Date.now() - 500000)
+      };
+      this.createProcessingHistory(history);
+    });
+    
+    this.createDataset(genomicDataset).then(dataset => {
+      this.updateDatasetStatus(dataset.id, 'structuring', 78, '~12 minutes');
+      
+      // Add processing history
+      const history: InsertProcessingHistory = {
+        datasetId: dataset.id,
+        operation: 'download',
+        status: 'success',
+        details: 'Downloaded from NCBI repository',
+        startTime: new Date(Date.now() - 400000),
+        endTime: new Date(Date.now() - 300000)
+      };
+      this.createProcessingHistory(history);
+      
+      const history2: InsertProcessingHistory = {
+        datasetId: dataset.id,
+        operation: 'structure',
+        status: 'in_progress',
+        details: 'Structuring genomic data according to schema.org standards',
+        startTime: new Date(Date.now() - 200000)
+      };
+      this.createProcessingHistory(history2);
+    });
+    
+    this.createDataset(socialMediaDataset).then(dataset => {
+      this.updateDatasetStatus(dataset.id, 'generating', 92, '~3 minutes');
+      
+      // Add processing history
+      const history: InsertProcessingHistory = {
+        datasetId: dataset.id,
+        operation: 'download',
+        status: 'success',
+        details: 'Downloaded from Kaggle',
+        startTime: new Date(Date.now() - 300000),
+        endTime: new Date(Date.now() - 250000)
+      };
+      this.createProcessingHistory(history);
+      
+      const history2: InsertProcessingHistory = {
+        datasetId: dataset.id,
+        operation: 'structure',
+        status: 'success',
+        details: 'Structured according to schema.org standards',
+        startTime: new Date(Date.now() - 200000),
+        endTime: new Date(Date.now() - 150000)
+      };
+      this.createProcessingHistory(history2);
+      
+      const history3: InsertProcessingHistory = {
+        datasetId: dataset.id,
+        operation: 'metadata_generation',
+        status: 'in_progress',
+        details: 'Generating metadata',
+        startTime: new Date(Date.now() - 100000)
+      };
+      this.createProcessingHistory(history3);
     });
   }
 }

@@ -1,86 +1,116 @@
-import { pgTable, text, serial, integer, boolean, jsonb, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Existing user schema
+// User schema for authentication
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
+  email: text("email").notNull(),
+  fullName: text("full_name"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
+  email: true,
+  fullName: true,
 });
-
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
 
 // Dataset schema
 export const datasets = pgTable("datasets", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
-  description: text("description").notNull(),
+  description: text("description"),
   source: text("source").notNull(),
   sourceUrl: text("source_url").notNull(),
-  dataType: text("data_type").notNull(),
-  category: text("category").notNull(),
+  category: text("category"),
   size: text("size"),
-  format: text("format"),
-  recordCount: integer("record_count"),
-  fairCompliant: boolean("fair_compliant").default(false),
-  metadataQuality: integer("metadata_quality").default(0),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  formats: text("formats").array(),
+  status: text("status").notNull().default("pending"), // pending, downloading, structuring, generating, processed, failed
+  progress: integer("progress").default(0),
+  estimatedTimeToCompletion: text("estimated_time_to_completion"),
+  keywords: text("keywords").array(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const insertDatasetSchema = createInsertSchema(datasets).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
+export const insertDatasetSchema = createInsertSchema(datasets).pick({
+  title: true,
+  description: true,
+  source: true,
+  sourceUrl: true,
+  category: true,
+  size: true,
+  formats: true,
+  keywords: true,
 });
 
-export type InsertDataset = z.infer<typeof insertDatasetSchema>;
-export type Dataset = typeof datasets.$inferSelect;
-
-// Metadata schema
+// DatasetMetadata schema
 export const metadata = pgTable("metadata", {
   id: serial("id").primaryKey(),
   datasetId: integer("dataset_id").notNull(),
   schemaOrgJson: jsonb("schema_org_json").notNull(),
-  fairScores: jsonb("fair_scores").notNull(),
-  keywords: text("keywords").array(),
-  variableMeasured: text("variable_measured").array(),
-  temporalCoverage: text("temporal_coverage"),
-  spatialCoverage: jsonb("spatial_coverage"),
+  fairAssessment: jsonb("fair_assessment"),
+  dataStructure: jsonb("data_structure"),
+  isFairCompliant: boolean("is_fair_compliant").default(false),
+  creator: text("creator"),
+  publisher: text("publisher"),
+  publicationDate: text("publication_date"),
+  lastUpdated: text("last_updated"),
+  language: text("language"),
   license: text("license"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  temporalCoverage: text("temporal_coverage"),
+  spatialCoverage: text("spatial_coverage"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const insertMetadataSchema = createInsertSchema(metadata).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
+export const insertMetadataSchema = createInsertSchema(metadata).pick({
+  datasetId: true,
+  schemaOrgJson: true,
+  fairAssessment: true,
+  dataStructure: true,
+  isFairCompliant: true,
+  creator: true,
+  publisher: true,
+  publicationDate: true,
+  lastUpdated: true,
+  language: true,
+  license: true,
+  temporalCoverage: true,
+  spatialCoverage: true,
 });
 
-export type InsertMetadata = z.infer<typeof insertMetadataSchema>;
-export type Metadata = typeof metadata.$inferSelect;
-
-// SearchQuery schema for NLP search
-export const searchQueries = pgTable("search_queries", {
+// Processing History schema
+export const processingHistory = pgTable("processing_history", {
   id: serial("id").primaryKey(),
-  query: text("query").notNull(),
-  processedQuery: text("processed_query").notNull(),
-  results: jsonb("results").notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
+  datasetId: integer("dataset_id").notNull(),
+  operation: text("operation").notNull(), // download, structure, metadata_generation
+  status: text("status").notNull(), // success, failed, in_progress
+  details: text("details"),
+  startTime: timestamp("start_time").defaultNow().notNull(),
+  endTime: timestamp("end_time"),
 });
 
-export const insertSearchQuerySchema = createInsertSchema(searchQueries).omit({
-  id: true,
-  createdAt: true,
+export const insertProcessingHistorySchema = createInsertSchema(processingHistory).pick({
+  datasetId: true,
+  operation: true,
+  status: true,
+  details: true,
+  startTime: true,
+  endTime: true,
 });
 
-export type InsertSearchQuery = z.infer<typeof insertSearchQuerySchema>;
-export type SearchQuery = typeof searchQueries.$inferSelect;
+export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;
+
+export type Dataset = typeof datasets.$inferSelect;
+export type InsertDataset = z.infer<typeof insertDatasetSchema>;
+
+export type Metadata = typeof metadata.$inferSelect;
+export type InsertMetadata = z.infer<typeof insertMetadataSchema>;
+
+export type ProcessingHistory = typeof processingHistory.$inferSelect;
+export type InsertProcessingHistory = z.infer<typeof insertProcessingHistorySchema>;

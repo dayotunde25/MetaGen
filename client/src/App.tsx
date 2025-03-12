@@ -4,19 +4,20 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
-import Datasets from "@/pages/datasets";
-import Documentation from "@/pages/documentation";
-import Api from "@/pages/api";
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
+import SearchDatasets from "@/pages/search-datasets";
+import DownloadedDatasets from "@/pages/downloaded-datasets";
+import GeneratedMetadata from "@/pages/generated-metadata";
+import ProcessingHistory from "@/pages/processing-history";
+import AppShell from "@/components/layouts/app-shell";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Dashboard} />
-      <Route path="/datasets" component={Datasets} />
-      <Route path="/documentation" component={Documentation} />
-      <Route path="/api" component={Api} />
+      <Route path="/search" component={SearchDatasets} />
+      <Route path="/downloaded" component={DownloadedDatasets} />
+      <Route path="/metadata" component={GeneratedMetadata} />
+      <Route path="/history" component={ProcessingHistory} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -25,13 +26,9 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="flex flex-col min-h-screen">
-        <Header />
-        <div className="flex-grow">
-          <Router />
-        </div>
-        <Footer />
-      </div>
+      <AppShell>
+        <Router />
+      </AppShell>
       <Toaster />
     </QueryClientProvider>
   );
