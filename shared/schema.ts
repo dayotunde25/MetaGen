@@ -1,107 +1,116 @@
-import { pgTable, text, serial, integer, boolean, timestamp, json, varchar, real } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// User schema
+// User schema for authentication
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
+  email: text("email").notNull(),
+  fullName: text("full_name"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
+  email: true,
+  fullName: true,
 });
-
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
 
 // Dataset schema
 export const datasets = pgTable("datasets", {
   id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  description: text("description").notNull(),
-  source: text("source").notNull(),
-  sourceUrl: text("source_url").notNull(),
-  format: text("format").notNull(),
-  size: text("size").notNull(),
-  records: text("records"),
-  lastUpdated: text("last_updated").notNull(),
-  fairScore: integer("fair_score").notNull(),
-  tags: text("tags").array().notNull(),
-  schema: text("schema").notNull(),
-  license: text("license").notNull(),
-  citation: text("citation"),
-  quality: text("quality").notNull(),
-  thumbnail: text("thumbnail"),
-  status: text("status").notNull().default('available'),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  metadata: json("metadata")
-});
-
-export const insertDatasetSchema = createInsertSchema(datasets).omit({
-  id: true,
-  createdAt: true
-});
-
-export type InsertDataset = z.infer<typeof insertDatasetSchema>;
-export type Dataset = typeof datasets.$inferSelect;
-
-// Processing Queue schema
-export const processingQueue = pgTable("processing_queue", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  source: text("source").notNull(),
-  sourceUrl: text("source_url").notNull(),
-  status: text("status").notNull().default('queued'),
-  progress: integer("progress").notNull().default(0),
-  size: text("size"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  estimatedCompletionTime: text("estimated_completion_time"),
-  error: text("error")
-});
-
-export const insertProcessingQueueSchema = createInsertSchema(processingQueue).omit({
-  id: true,
-  progress: true,
-  createdAt: true,
-  error: true
-});
-
-export type InsertProcessingQueue = z.infer<typeof insertProcessingQueueSchema>;
-export type ProcessingQueue = typeof processingQueue.$inferSelect;
-
-// Search schema
-export const searchHistory = pgTable("search_history", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id),
-  query: text("query").notNull(),
-  filters: json("filters"),
-  createdAt: timestamp("created_at").notNull().defaultNow()
-});
-
-export const insertSearchHistorySchema = createInsertSchema(searchHistory).omit({
-  id: true,
-  createdAt: true
-});
-
-export type InsertSearchHistory = z.infer<typeof insertSearchHistorySchema>;
-export type SearchHistory = typeof searchHistory.$inferSelect;
-
-// Repository schema
-export const repositories = pgTable("repositories", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  url: text("url").notNull(),
-  apiEndpoint: text("api_endpoint"),
+  title: text("title").notNull(),
   description: text("description"),
-  icon: text("icon")
+  source: text("source").notNull(),
+  sourceUrl: text("source_url").notNull(),
+  category: text("category"),
+  size: text("size"),
+  formats: text("formats").array(),
+  status: text("status").notNull().default("pending"), // pending, downloading, structuring, generating, processed, failed
+  progress: integer("progress").default(0),
+  estimatedTimeToCompletion: text("estimated_time_to_completion"),
+  keywords: text("keywords").array(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const insertRepositorySchema = createInsertSchema(repositories).omit({
-  id: true
+export const insertDatasetSchema = createInsertSchema(datasets).pick({
+  title: true,
+  description: true,
+  source: true,
+  sourceUrl: true,
+  category: true,
+  size: true,
+  formats: true,
+  keywords: true,
 });
 
-export type InsertRepository = z.infer<typeof insertRepositorySchema>;
-export type Repository = typeof repositories.$inferSelect;
+// DatasetMetadata schema
+export const metadata = pgTable("metadata", {
+  id: serial("id").primaryKey(),
+  datasetId: integer("dataset_id").notNull(),
+  schemaOrgJson: jsonb("schema_org_json").notNull(),
+  fairAssessment: jsonb("fair_assessment"),
+  dataStructure: jsonb("data_structure"),
+  isFairCompliant: boolean("is_fair_compliant").default(false),
+  creator: text("creator"),
+  publisher: text("publisher"),
+  publicationDate: text("publication_date"),
+  lastUpdated: text("last_updated"),
+  language: text("language"),
+  license: text("license"),
+  temporalCoverage: text("temporal_coverage"),
+  spatialCoverage: text("spatial_coverage"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertMetadataSchema = createInsertSchema(metadata).pick({
+  datasetId: true,
+  schemaOrgJson: true,
+  fairAssessment: true,
+  dataStructure: true,
+  isFairCompliant: true,
+  creator: true,
+  publisher: true,
+  publicationDate: true,
+  lastUpdated: true,
+  language: true,
+  license: true,
+  temporalCoverage: true,
+  spatialCoverage: true,
+});
+
+// Processing History schema
+export const processingHistory = pgTable("processing_history", {
+  id: serial("id").primaryKey(),
+  datasetId: integer("dataset_id").notNull(),
+  operation: text("operation").notNull(), // download, structure, metadata_generation
+  status: text("status").notNull(), // success, failed, in_progress
+  details: text("details"),
+  startTime: timestamp("start_time").defaultNow().notNull(),
+  endTime: timestamp("end_time"),
+});
+
+export const insertProcessingHistorySchema = createInsertSchema(processingHistory).pick({
+  datasetId: true,
+  operation: true,
+  status: true,
+  details: true,
+  startTime: true,
+  endTime: true,
+});
+
+export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;
+
+export type Dataset = typeof datasets.$inferSelect;
+export type InsertDataset = z.infer<typeof insertDatasetSchema>;
+
+export type Metadata = typeof metadata.$inferSelect;
+export type InsertMetadata = z.infer<typeof insertMetadataSchema>;
+
+export type ProcessingHistory = typeof processingHistory.$inferSelect;
+export type InsertProcessingHistory = z.infer<typeof insertProcessingHistorySchema>;
