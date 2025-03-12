@@ -1,175 +1,147 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
-import DatasetCard from "@/components/dashboard/dataset-card";
-import { Search, Filter, RefreshCw } from "lucide-react";
+import DatasetCard from "@/components/dataset-card";
+import SearchForm from "@/components/search-form";
+import { Dataset } from "@shared/schema";
+import { Loader2 } from "lucide-react";
 
 export default function SearchDatasets() {
-  const { toast } = useToast();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [dataFormat, setDataFormat] = useState("");
-  const [category, setCategory] = useState("");
-  const [dateRange, setDateRange] = useState("");
-  
-  const { data: searchResults, isLoading, refetch } = useQuery({
-    queryKey: ['/api/datasets/search', searchQuery, dataFormat, category, dateRange],
-    enabled: false,
+  const [location] = useLocation();
+  const [searchParams, setSearchParams] = useState<URLSearchParams>(new URLSearchParams());
+  const [query, setQuery] = useState<string>("");
+  const [tags, setTags] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState<string>("dateAdded");
+  const [page, setPage] = useState<number>(1);
+  const pageSize = 9;
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setSearchParams(params);
+    setQuery(params.get("q") || "");
+    setTags(params.get("tags") ? params.get("tags")!.split(",") : []);
+    setSortBy(params.get("sortBy") || "dateAdded");
+    setPage(parseInt(params.get("page") || "1"));
+  }, [location]);
+
+  // Fetch datasets with search parameters
+  const { data: datasets, isLoading, refetch } = useQuery<Dataset[]>({
+    queryKey: [`/api/search?q=${query}&tags=${tags.join(',')}&sortBy=${sortBy}&limit=${pageSize}&offset=${(page - 1) * pageSize}`],
+    enabled: searchParams.toString() !== "",
   });
-  
-  const performSearch = () => {
-    const queryParams = new URLSearchParams();
-    if (searchQuery) queryParams.append('q', searchQuery);
-    if (dataFormat) queryParams.append('format', dataFormat);
-    if (category) queryParams.append('category', category);
-    if (dateRange) queryParams.append('dateRange', dateRange);
+
+  const handleSearch = (newQuery: string, newTags: string[]) => {
+    const params = new URLSearchParams();
+    if (newQuery) params.set("q", newQuery);
+    if (newTags.length > 0) params.set("tags", newTags.join(","));
+    params.set("sortBy", sortBy);
+    params.set("page", "1");
     
+    window.history.pushState({}, "", `${window.location.pathname}?${params.toString()}`);
+    setSearchParams(params);
+    setQuery(newQuery);
+    setTags(newTags);
+    setPage(1);
     refetch();
   };
-  
-  const resetSearch = () => {
-    setSearchQuery("");
-    setDataFormat("");
-    setCategory("");
-    setDateRange("");
-    // Clear search results by not triggering a search
+
+  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newSortBy = e.target.value;
+    const params = new URLSearchParams(searchParams);
+    params.set("sortBy", newSortBy);
+    
+    window.history.pushState({}, "", `${window.location.pathname}?${params.toString()}`);
+    setSearchParams(params);
+    setSortBy(newSortBy);
+    refetch();
   };
-  
+
+  const loadMoreResults = () => {
+    setPage(page + 1);
+    const params = new URLSearchParams(searchParams);
+    params.set("page", (page + 1).toString());
+    
+    window.history.pushState({}, "", `${window.location.pathname}?${params.toString()}`);
+    setSearchParams(params);
+    refetch();
+  };
+
+  const suggestedFilters = [
+    "Machine Learning",
+    "CSV",
+    "Healthcare",
+    "Financial Data",
+    "Time Series",
+    "Computer Vision",
+    "NLP",
+    "Public Domain",
+    "Images"
+  ];
+
   return (
-    <div className="space-y-6">
-      <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">Search for Datasets</h2>
-        <div className="relative">
-          <div className="flex rounded-md shadow-sm">
-            <div className="relative flex-grow focus-within:z-10">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400" />
-              </div>
-              <Input 
-                type="text" 
-                placeholder="Search for datasets using semantic search..." 
-                className="pl-10"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') performSearch();
-                }}
-              />
-            </div>
-            <Button 
-              variant="outline" 
-              className="ml-2 flex items-center" 
-              onClick={() => setShowAdvanced(!showAdvanced)}
-            >
-              <Filter className="h-4 w-4 mr-2" />
-              Filters
-            </Button>
-          </div>
-        </div>
-        
-        {/* Advanced Search Options */}
-        {showAdvanced && (
-          <div className="mt-4">
-            <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="data-format">Data Format</Label>
-                <Select value={dataFormat} onValueChange={setDataFormat}>
-                  <SelectTrigger id="data-format" className="mt-1">
-                    <SelectValue placeholder="Any Format" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">Any Format</SelectItem>
-                    <SelectItem value="CSV">CSV</SelectItem>
-                    <SelectItem value="JSON">JSON</SelectItem>
-                    <SelectItem value="XML">XML</SelectItem>
-                    <SelectItem value="Parquet">Parquet</SelectItem>
-                    <SelectItem value="Avro">Avro</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label htmlFor="category">Category</Label>
-                <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger id="category" className="mt-1">
-                    <SelectValue placeholder="All Categories" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">All Categories</SelectItem>
-                    <SelectItem value="Healthcare">Healthcare</SelectItem>
-                    <SelectItem value="Climate">Climate & Environment</SelectItem>
-                    <SelectItem value="Economics">Economics</SelectItem>
-                    <SelectItem value="Social Sciences">Social Sciences</SelectItem>
-                    <SelectItem value="Physics">Physics</SelectItem>
-                    <SelectItem value="Earth Science">Earth Science</SelectItem>
-                    <SelectItem value="Genomics">Genomics</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label htmlFor="date-range">Date Range</Label>
-                <Select value={dateRange} onValueChange={setDateRange}>
-                  <SelectTrigger id="date-range" className="mt-1">
-                    <SelectValue placeholder="Any Time" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">Any Time</SelectItem>
-                    <SelectItem value="past-day">Past 24 Hours</SelectItem>
-                    <SelectItem value="past-week">Past Week</SelectItem>
-                    <SelectItem value="past-month">Past Month</SelectItem>
-                    <SelectItem value="past-year">Past Year</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-        )}
-        
-        {/* Search Buttons */}
-        <div className="mt-4 flex flex-col sm:flex-row sm:justify-end space-y-2 sm:space-y-0 sm:space-x-2">
-          <Button onClick={performSearch}>
-            <Search className="h-4 w-4 mr-1" />
-            Search
-          </Button>
-          <Button variant="outline" onClick={resetSearch}>
-            <RefreshCw className="h-4 w-4 mr-1" />
-            Reset
-          </Button>
+    <div>
+      {/* Search and Filters */}
+      <div className="bg-white rounded-lg shadow mb-8">
+        <div className="p-4 md:p-6 border-b border-neutral-light">
+          <h2 className="text-xl font-semibold mb-4">Search Public Datasets</h2>
+          <SearchForm 
+            onSearch={handleSearch} 
+            suggestedFilters={suggestedFilters} 
+          />
         </div>
       </div>
-      
+
       {/* Search Results */}
-      <div>
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">Search Results</h2>
+      <div className="mb-8">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">
+            {query || tags.length > 0 ? "Search Results" : "All Datasets"}
+          </h2>
+          
+          <div className="flex items-center">
+            <label className="mr-2 text-sm text-neutral-dark">Sort by:</label>
+            <select 
+              className="border border-neutral-light rounded-md py-1 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
+              value={sortBy}
+              onChange={handleSortChange}
+            >
+              <option value="relevance">Relevance</option>
+              <option value="dateAdded">Date Added</option>
+              <option value="name">Name</option>
+              <option value="quality">Quality Score</option>
+            </select>
+          </div>
+        </div>
         
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="h-56 bg-white shadow rounded-lg animate-pulse"></div>
-            <div className="h-56 bg-white shadow rounded-lg animate-pulse"></div>
-            <div className="h-56 bg-white shadow rounded-lg animate-pulse"></div>
+          <div className="flex justify-center items-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
+        ) : datasets && datasets.length > 0 ? (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {datasets.map((dataset) => (
+                <DatasetCard key={dataset.id} dataset={dataset} />
+              ))}
+            </div>
+            
+            <div className="mt-6 text-center">
+              <Button 
+                variant="link" 
+                className="text-primary font-medium hover:text-primary-dark inline-flex items-center"
+                onClick={loadMoreResults}
+                disabled={datasets.length < pageSize}
+              >
+                {datasets.length < pageSize ? "No more results" : "Load more results"}
+                <span className="material-icons ml-1">expand_more</span>
+              </Button>
+            </div>
+          </>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {searchResults?.map((dataset) => (
-              <DatasetCard key={dataset.id} dataset={dataset} />
-            ))}
-            
-            {searchResults && searchResults.length === 0 && (
-              <div className="col-span-3 bg-white shadow rounded-lg p-6 text-center">
-                <p className="text-gray-500">No datasets found matching your search criteria.</p>
-              </div>
-            )}
-            
-            {!searchResults && (
-              <div className="col-span-3 bg-white shadow rounded-lg p-6 text-center">
-                <p className="text-gray-500">Use the search box above to find datasets.</p>
-              </div>
-            )}
+          <div className="bg-white rounded-lg shadow p-8 text-center">
+            <p className="text-lg text-neutral-dark mb-2">No datasets found</p>
+            <p className="text-neutral-medium">Try adjusting your search query or filters</p>
           </div>
         )}
       </div>
