@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, PasswordField, BooleanField, SubmitField, SelectField
-from wtforms.validators import DataRequired, Length, Email, EqualTo, URL, Optional, ValidationError
+from wtforms.validators import DataRequired, Email, Length, EqualTo, URL, Optional
 from app.models.user import User
 
 class LoginForm(FlaskForm):
@@ -21,12 +21,12 @@ class RegistrationForm(FlaskForm):
     def validate_username(self, username):
         user = User.query.filter_by(username=username.data).first()
         if user is not None:
-            raise ValidationError('Please use a different username.')
-            
+            raise ValidationError('Username already taken.')
+    
     def validate_email(self, email):
         user = User.query.filter_by(email=email.data).first()
         if user is not None:
-            raise ValidationError('Please use a different email address.')
+            raise ValidationError('Email already registered.')
 
 class DatasetForm(FlaskForm):
     """Form for dataset creation or editing"""
@@ -79,3 +79,6 @@ class SearchForm(FlaskForm):
         ('mixed', 'Mixed Data Types')
     ], validators=[Optional()])
     submit = SubmitField('Search')
+
+# Import ValidationError after it is used to avoid circular import
+from wtforms.validators import ValidationError

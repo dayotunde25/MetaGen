@@ -1,5 +1,6 @@
 from datetime import datetime
 import json
+
 from app.models import db
 
 class MetadataQuality(db.Model):
@@ -9,7 +10,7 @@ class MetadataQuality(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     dataset_id = db.Column(db.Integer, db.ForeignKey('datasets.id'))
     
-    # Core metadata quality metrics
+    # Quality metrics
     quality_score = db.Column(db.Float)  # Overall quality score (0-100)
     completeness = db.Column(db.Float)   # Completeness score (0-100)
     consistency = db.Column(db.Float)    # Consistency score (0-100)
@@ -29,6 +30,7 @@ class MetadataQuality(db.Model):
     issues = db.Column(db.Text)  # JSON list of issues
     recommendations = db.Column(db.Text)  # JSON list of recommendations
     
+    # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -46,9 +48,9 @@ class MetadataQuality(db.Model):
         self.reusable_score = reusable_score
         self.fair_compliant = fair_compliant
         self.schema_org_compliant = schema_org_compliant
-        self.schema_org_metadata = schema_org_metadata
-        self.issues = json.dumps(issues) if issues else '[]'
-        self.recommendations = json.dumps(recommendations) if recommendations else '[]'
+        self.schema_org_metadata = json.dumps(schema_org_metadata) if schema_org_metadata else None
+        self.issues = json.dumps(issues) if issues else None
+        self.recommendations = json.dumps(recommendations) if recommendations else None
     
     @property
     def issues_list(self):
@@ -60,7 +62,7 @@ class MetadataQuality(db.Model):
     @issues_list.setter
     def issues_list(self, issues):
         """Set issues from a list"""
-        self.issues = json.dumps(issues) if issues else '[]'
+        self.issues = json.dumps(issues) if issues else None
     
     @property
     def recommendations_list(self):
@@ -72,7 +74,7 @@ class MetadataQuality(db.Model):
     @recommendations_list.setter
     def recommendations_list(self, recommendations):
         """Set recommendations from a list"""
-        self.recommendations = json.dumps(recommendations) if recommendations else '[]'
+        self.recommendations = json.dumps(recommendations) if recommendations else None
     
     @property
     def schema_org_json(self):
@@ -84,7 +86,7 @@ class MetadataQuality(db.Model):
     @schema_org_json.setter
     def schema_org_json(self, data):
         """Set schema.org metadata from JSON object"""
-        self.schema_org_metadata = json.dumps(data) if data else '{}'
+        self.schema_org_metadata = json.dumps(data) if data else None
     
     def to_dict(self):
         """Convert to dictionary"""
@@ -100,14 +102,15 @@ class MetadataQuality(db.Model):
             'reusable_score': self.reusable_score,
             'fair_compliant': self.fair_compliant,
             'schema_org_compliant': self.schema_org_compliant,
+            'schema_org_metadata': self.schema_org_json,
             'issues': self.issues_list,
             'recommendations': self.recommendations_list,
             'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
     
     def __repr__(self):
-        return f'<MetadataQuality for dataset_id={self.dataset_id}>'
+        return f'<MetadataQuality dataset_id={self.dataset_id}>'
 
 
 class ProcessingQueue(db.Model):
@@ -142,8 +145,8 @@ class ProcessingQueue(db.Model):
             'started_at': self.started_at.isoformat() if self.started_at else None,
             'completed_at': self.completed_at.isoformat() if self.completed_at else None,
             'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
     
     def __repr__(self):
-        return f'<ProcessingQueue for dataset_id={self.dataset_id}>'
+        return f'<ProcessingQueue dataset_id={self.dataset_id}, status={self.status}>'

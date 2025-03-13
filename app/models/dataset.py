@@ -1,8 +1,10 @@
 from datetime import datetime
 import json
+
 from app.models import db
 
 class Dataset(db.Model):
+    """Dataset model for storing dataset information"""
     __tablename__ = 'datasets'
     
     id = db.Column(db.Integer, primary_key=True)
@@ -22,7 +24,7 @@ class Dataset(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     
-    # Relationships
+    # Define relationships
     metadata = db.relationship('MetadataQuality', backref='dataset', lazy='joined', uselist=False)
     processing = db.relationship('ProcessingQueue', backref='dataset', lazy='joined', uselist=False)
     
@@ -36,7 +38,7 @@ class Dataset(db.Model):
         self.format = format
         self.data_type = data_type
         self.category = category
-        self.tags = json.dumps(tags) if isinstance(tags, list) else tags
+        self.tags = tags
         self.size = size
         self.record_count = record_count
         self.user_id = user_id
@@ -46,18 +48,15 @@ class Dataset(db.Model):
         """Return tags as a list"""
         if not self.tags:
             return []
-        try:
-            return json.loads(self.tags)
-        except:
-            return self.tags.split(',')
+        return [tag.strip() for tag in self.tags.split(',')]
     
     @tags_list.setter
     def tags_list(self, tags):
         """Set tags from a list"""
-        if isinstance(tags, list):
-            self.tags = json.dumps(tags)
+        if not tags:
+            self.tags = ''
         else:
-            self.tags = tags
+            self.tags = ','.join(tags)
     
     def to_dict(self):
         """Convert dataset to a dictionary"""
