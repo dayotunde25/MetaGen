@@ -31,6 +31,21 @@
                         <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
                             <i class="fas fa-trash"></i> Delete
                         </button>
+                        {% if quality %}
+                        <div class="dropdown d-inline-block">
+                            <button class="btn btn-sm btn-outline-info dropdown-toggle" type="button" id="reportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-file-medical-alt"></i> Health Report
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="reportDropdown">
+                                <li><a class="dropdown-item" href="{{ url_for('reports.view_report', dataset_id=dataset.id, format='html') }}" target="_blank">
+                                    <i class="fas fa-file-code me-2"></i> View HTML Report
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('reports.view_report', dataset_id=dataset.id, format='pdf') }}">
+                                    <i class="fas fa-file-pdf me-2"></i> Download PDF Report
+                                </a></li>
+                            </ul>
+                        </div>
+                        {% endif %}
                     </div>
                     {% endif %}
                 </div>
