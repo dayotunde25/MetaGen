@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{REPORT_TITLE}}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        
+        .report-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+            position: relative;
+        }
+        
+        .report-logo {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100px;
+        }
+        
+        .report-title {
+            font-size: 28px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .report-date {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        
+        .report-summary {
+            background-color: #f0f7ff;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .section {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        h2 {
+            color: #2c3e50;
+            font-size: 22px;
+            margin-top: 0;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        h3 {
+            color: #34495e;
+            font-size: 18px;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+        
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .info-table td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            vertical-align: top;
+        }
+        
+        .info-table .label {
+            font-weight: bold;
+            width: 150px;
+            color: #34495e;
+        }
+        
+        .tag {
+            display: inline-block;
+            background-color: #e0f2fe;
+            color: #0369a1;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        
+        .overall-score {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 30px 0;
+        }
+        
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 36px;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 10px;
+        }
+        
+        .score-label {
+            font-size: 16px;
+            color: #555;
+        }
+        
+        .excellent {
+            background-color: #10b981;
+        }
+        
+        .good {
+            background-color: #3b82f6;
+        }
+        
+        .fair {
+            background-color: #f59e0b;
+        }
+        
+        .poor {
+            background-color: #ef4444;
+        }
+        
+        .dimensions, .fair-scores {
+            margin-top: 20px;
+        }
+        
+        .dimension-item, .fair-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .dimension-name, .fair-name {
+            width: 150px;
+            font-weight: 500;
+        }
+        
+        .fair-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+        
+        .progress-bar-container {
+            flex-grow: 1;
+            height: 8px;
+            background-color: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 0 15px;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            border-radius: 4px;
+        }
+        
+        .dimension-score, .fair-score {
+            width: 40px;
+            text-align: right;
+            font-weight: bold;
+        }
+        
+        .compliance-status {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .status-item {
+            background-color: #f8fafc;
+            padding: 10px 15px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .status-label {
+            font-weight: 500;
+        }
+        
+        .status-value {
+            margin-left: 5px;
+            font-weight: bold;
+        }
+        
+        .compliant {
+            color: #10b981;
+        }
+        
+        .non-compliant {
+            color: #f59e0b;
+        }
+        
+        .recommendations-list, .issues-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        
+        .recommendation-item, .issue-item {
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .recommendation-item {
+            background-color: #f0fdf4;
+            border-left: 4px solid #10b981;
+        }
+        
+        .issue-item {
+            background-color: #fff7ed;
+            border-left: 4px solid #f59e0b;
+        }
+        
+        .icon {
+            margin-right: 12px;
+            font-style: normal;
+        }
+        
+        .empty-message {
+            padding: 20px;
+            text-align: center;
+            color: #6b7280;
+            font-style: italic;
+            background-color: #f8fafc;
+            border-radius: 6px;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        
+        .qr-section {
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .qr-code {
+            display: inline-block;
+            padding: 10px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .qr-text {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #6b7280;
+        }
+        
+        @media print {
+            body {
+                background-color: #fff;
+                padding: 0;
+            }
+            
+            .section {
+                box-shadow: none;
+                border: 1px solid #ddd;
+                break-inside: avoid;
+            }
+            
+            .report-header {
+                break-after: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="report-header">
+        <h1 class="report-title">{{REPORT_TITLE}}</h1>
+        <div class="report-date">Generated on {{REPORT_DATE}}</div>
+    </div>
+    
+    <div class="report-summary">
+        <p>This report provides a comprehensive assessment of the dataset's quality and compliance with metadata standards including FAIR principles and Schema.org. Use this information to identify areas for improvement and ensure your dataset meets best practices for data sharing and reuse.</p>
+    </div>
+    
+    {{DATASET_INFO}}
+    
+    {{QUALITY_METRICS}}
+    
+    {{RECOMMENDATIONS}}
+    
+    {{ISSUES}}
+    
+    <footer>
+        <p>Report generated by Dataset Metadata Manager</p>
+        <p>© 2023 Dataset Metadata Management System</p>
+    </footer>
+</body>
+</html>

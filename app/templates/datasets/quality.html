@@ -1,0 +1,382 @@
+{% extends "base.html" %}
+
+{% block title %}Dataset Quality Assessment - {{ dataset.title }}{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('datasets.list') }}">Datasets</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('datasets.view', dataset_id=dataset.id) }}">{{ dataset.title }}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Quality Assessment</li>
+                </ol>
+            </nav>
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h1 class="mb-0">
+                        <i class="fas fa-chart-bar text-primary me-2"></i>
+                        Quality Assessment
+                    </h1>
+                    <p class="text-muted">{{ dataset.title }}</p>
+                </div>
+                {% if quality %}
+                <div class="dropdown">
+                    <button class="btn btn-primary dropdown-toggle" type="button" id="reportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-file-medical-alt me-2"></i>
+                        Generate Health Report
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="reportDropdown">
+                        <li><a class="dropdown-item" href="{{ url_for('reports.view_report', dataset_id=dataset.id, format='html') }}" target="_blank">
+                            <i class="fas fa-file-code me-2"></i> View HTML Report
+                        </a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('reports.view_report', dataset_id=dataset.id, format='pdf') }}">
+                            <i class="fas fa-file-pdf me-2"></i> Download PDF Report
+                        </a></li>
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if not quality %}
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        This dataset has not been assessed for quality yet.
+        <div class="mt-3">
+            <a href="{{ url_for('datasets.assess_quality', dataset_id=dataset.id) }}" class="btn btn-primary">
+                <i class="fas fa-chart-line me-2"></i>
+                Assess Quality
+            </a>
+        </div>
+    </div>
+    {% else %}
+    
+    <!-- Overall Quality Score -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-lg-3 text-center">
+                            <div class="quality-score-circle 
+                                {% if quality.quality_score >= 80 %}bg-success{% elif quality.quality_score >= 60 %}bg-info{% elif quality.quality_score >= 40 %}bg-warning{% else %}bg-danger{% endif %}">
+                                <h2 class="mb-0">{{ quality.quality_score|round|int }}</h2>
+                                <p class="mb-0 small">out of 100</p>
+                            </div>
+                            <h4 class="mt-2">Overall Quality</h4>
+                            <p class="text-muted small mb-0">Last assessed: {{ quality.assessment_date.strftime('%b %d, %Y') }}</p>
+                        </div>
+                        <div class="col-lg-9">
+                            <h4>Quality Assessment Summary</h4>
+                            <p>This dataset's quality has been evaluated across multiple dimensions using our advanced scoring algorithms. The overall quality score is calculated as a weighted average of the dimension scores.</p>
+                            
+                            <div class="progress-labels d-flex justify-content-between mb-1 mt-4">
+                                <span>Poor</span>
+                                <span>Fair</span>
+                                <span>Good</span>
+                                <span>Excellent</span>
+                            </div>
+                            <div class="progress" style="height: 10px;">
+                                <div class="progress-bar bg-danger" role="progressbar" style="width: 25%"></div>
+                                <div class="progress-bar bg-warning" role="progressbar" style="width: 25%"></div>
+                                <div class="progress-bar bg-info" role="progressbar" style="width: 25%"></div>
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 25%"></div>
+                            </div>
+                            <div class="position-relative mt-1">
+                                <div class="position-absolute" style="left: calc({{ quality.quality_score }}% - 8px);">
+                                    <i class="fas fa-caret-up"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Dimension Scores -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Quality Dimensions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% set dimensions = [
+                            {'name': 'Completeness', 'score': quality.completeness, 'icon': 'fa-check-circle', 'description': 'Presence of required and recommended metadata fields'},
+                            {'name': 'Consistency', 'score': quality.consistency, 'icon': 'fa-sync', 'description': 'Consistency of data formats and values'},
+                            {'name': 'Accuracy', 'score': quality.accuracy, 'icon': 'fa-bullseye', 'description': 'Accuracy and correctness of the data content'},
+                            {'name': 'Timeliness', 'score': quality.timeliness, 'icon': 'fa-clock', 'description': 'Freshness and update frequency of the dataset'},
+                            {'name': 'Conformity', 'score': quality.conformity, 'icon': 'fa-certificate', 'description': 'Compliance with standards like Schema.org and FAIR principles'},
+                            {'name': 'Integrity', 'score': quality.integrity, 'icon': 'fa-shield-alt', 'description': 'Data integrity and validation'}
+                        ] %}
+                        
+                        {% for dim in dimensions %}
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="dimension-card p-3 h-100">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="dimension-icon me-3 
+                                        {% if dim.score >= 80 %}bg-success{% elif dim.score >= 60 %}bg-info{% elif dim.score >= 40 %}bg-warning{% else %}bg-danger{% endif %}">
+                                        <i class="fas {{ dim.icon }}"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="mb-0">{{ dim.name }}</h5>
+                                        <div class="score-badge 
+                                            {% if dim.score >= 80 %}bg-success{% elif dim.score >= 60 %}bg-info{% elif dim.score >= 40 %}bg-warning{% else %}bg-danger{% endif %}">
+                                            {{ dim.score|round|int }}/100
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="small mb-2">{{ dim.description }}</p>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar 
+                                        {% if dim.score >= 80 %}bg-success{% elif dim.score >= 60 %}bg-info{% elif dim.score >= 40 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                        role="progressbar" style="width: {{ dim.score }}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- FAIR Compliance -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">FAIR Principles Compliance</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-lg-8">
+                            <p>The FAIR Data Principles emphasize Findability, Accessibility, Interoperability, and Reusability of data and metadata.</p>
+                            
+                            <div class="row mt-4">
+                                {% set fair_principles = [
+                                    {'name': 'Findable', 'letter': 'F', 'score': quality.findable_score, 'color': 'success', 'description': 'Data can be found by humans and machines'},
+                                    {'name': 'Accessible', 'letter': 'A', 'score': quality.accessible_score, 'color': 'info', 'description': 'Data can be accessed with appropriate authentication'},
+                                    {'name': 'Interoperable', 'letter': 'I', 'score': quality.interoperable_score, 'color': 'warning', 'description': 'Data can be integrated with other data and used by applications'},
+                                    {'name': 'Reusable', 'letter': 'R', 'score': quality.reusable_score, 'color': 'danger', 'description': 'Data can be reused under clear licensing and provenance'}
+                                ] %}
+                                
+                                {% for principle in fair_principles %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="fair-principle-card">
+                                        <div class="d-flex align-items-center">
+                                            <div class="fair-letter bg-{{ principle.color }} me-3">{{ principle.letter }}</div>
+                                            <div>
+                                                <h5 class="mb-0">{{ principle.name }}</h5>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="progress flex-grow-1 me-2" style="height: 6px;">
+                                                        <div class="progress-bar bg-{{ principle.color }}" role="progressbar" 
+                                                            style="width: {{ principle.score }}%"></div>
+                                                    </div>
+                                                    <span class="score-value">{{ principle.score|round|int }}%</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <p class="small mt-2 mb-0">{{ principle.description }}</p>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="fair-compliance-status text-center p-4 mb-3">
+                                <div class="status-indicator mb-3 
+                                    {% if quality.fair_compliant %}bg-success{% else %}bg-warning{% endif %}">
+                                    <i class="fas {% if quality.fair_compliant %}fa-check{% else %}fa-exclamation-triangle{% endif %}"></i>
+                                </div>
+                                <h4>FAIR Compliance</h4>
+                                <p class="mb-0">
+                                    {% if quality.fair_compliant %}
+                                    This dataset is compliant with FAIR principles.
+                                    {% else %}
+                                    This dataset is not yet fully compliant with FAIR principles.
+                                    {% endif %}
+                                </p>
+                            </div>
+                            
+                            <div class="schema-org-status text-center p-4">
+                                <div class="status-indicator mb-3 
+                                    {% if quality.schema_org_compliant %}bg-success{% else %}bg-warning{% endif %}">
+                                    <i class="fas {% if quality.schema_org_compliant %}fa-check{% else %}fa-exclamation-triangle{% endif %}"></i>
+                                </div>
+                                <h4>Schema.org Compliance</h4>
+                                <p class="mb-0">
+                                    {% if quality.schema_org_compliant %}
+                                    This dataset has valid Schema.org metadata.
+                                    {% else %}
+                                    This dataset's Schema.org metadata needs improvement.
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recommendations and Issues -->
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Recommendations</h5>
+                </div>
+                <div class="card-body">
+                    {% if quality.recommendations_list %}
+                    <ul class="recommendations-list">
+                        {% for recommendation in quality.recommendations_list %}
+                        <li>
+                            <div class="recommendation-item">
+                                <i class="fas fa-lightbulb text-warning me-2"></i>
+                                {{ recommendation }}
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-center py-4 text-muted">
+                        <i class="fas fa-check-circle fa-2x mb-2"></i><br>
+                        No recommendations available
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Issues</h5>
+                </div>
+                <div class="card-body">
+                    {% if quality.issues_list %}
+                    <ul class="issues-list">
+                        {% for issue in quality.issues_list %}
+                        <li>
+                            <div class="issue-item">
+                                <i class="fas fa-exclamation-circle text-danger me-2"></i>
+                                {{ issue }}
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-center py-4 text-muted">
+                        <i class="fas fa-check-circle fa-2x mb-2"></i><br>
+                        No issues detected
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    /* Quality Score Styles */
+    .quality-score-circle {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        color: #fff;
+        margin: 0 auto;
+    }
+    
+    .dimension-card {
+        border: 1px solid rgba(0,0,0,0.1);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .dimension-card:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        transform: translateY(-5px);
+    }
+    
+    .dimension-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #fff;
+    }
+    
+    .score-badge {
+        display: inline-block;
+        padding: 2px 6px;
+        border-radius: 4px;
+        color: #fff;
+        font-size: 0.75rem;
+        margin-top: 4px;
+    }
+    
+    .fair-letter {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #fff;
+        font-weight: bold;
+    }
+    
+    .fair-principle-card {
+        padding: 1rem;
+        border: 1px solid rgba(0,0,0,0.1);
+        border-radius: 8px;
+        height: 100%;
+    }
+    
+    .status-indicator {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #fff;
+        font-size: 1.5rem;
+        margin: 0 auto;
+    }
+    
+    .fair-compliance-status, .schema-org-status {
+        border: 1px solid rgba(0,0,0,0.1);
+        border-radius: 8px;
+    }
+    
+    .recommendations-list, .issues-list {
+        list-style-type: none;
+        padding-left: 0;
+    }
+    
+    .recommendation-item, .issue-item {
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+        border-radius: 8px;
+        background-color: rgba(0,0,0,0.03);
+    }
+</style>
+{% endblock %}

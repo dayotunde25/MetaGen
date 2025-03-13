@@ -1,272 +1,267 @@
 {% extends "base.html" %}
 
-{% block title %}{{ dataset.title }} - Dataset Metadata Manager{% endblock %}
+{% block title %}Dataset - {{ dataset.title }}{% endblock %}
 
 {% block content %}
-<div class="container">
-    <nav aria-label="breadcrumb" class="mb-4">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
-            <li class="breadcrumb-item"><a href="{{ url_for('datasets.list_datasets') }}">Datasets</a></li>
-            <li class="breadcrumb-item active" aria-current="page">{{ dataset.title }}</li>
-        </ol>
-    </nav>
-
-    <div class="row">
-        <!-- Main dataset info -->
-        <div class="col-lg-8">
-            <div class="card mb-4">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h1 class="mb-0">{{ dataset.title }}</h1>
-                        <div class="d-flex gap-2">
-                            <a href="{{ url_for('datasets.edit_dataset', dataset_id=dataset.id) }}" class="btn btn-outline-primary">
-                                <i class="fas fa-edit me-1"></i> Edit
-                            </a>
-                            {% if dataset.status == 'pending' %}
-                            <a href="{{ url_for('datasets.process_dataset', dataset_id=dataset.id) }}" class="btn btn-outline-success">
-                                <i class="fas fa-play me-1"></i> Process
-                            </a>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <div class="mb-4">
-                        <h5 class="mb-3">Description</h5>
-                        <p>{{ dataset.description or 'No description provided.' }}</p>
-                    </div>
-
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <h5 class="mb-3">Source Information</h5>
-                            <table class="table table-sm">
-                                <tr>
-                                    <th style="width: 30%">Source:</th>
-                                    <td>{{ dataset.source or 'Not specified' }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Source URL:</th>
-                                    <td>
-                                        {% if dataset.source_url %}
-                                        <a href="{{ dataset.source_url }}" target="_blank">{{ dataset.source_url }} <i class="fas fa-external-link-alt fa-sm"></i></a>
-                                        {% else %}
-                                        Not specified
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>Added on:</th>
-                                    <td>{{ dataset.created_at.strftime('%B %d, %Y') }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Last updated:</th>
-                                    <td>{{ dataset.updated_at.strftime('%B %d, %Y') }}</td>
-                                </tr>
-                            </table>
-                        </div>
-                        <div class="col-md-6">
-                            <h5 class="mb-3">Dataset Properties</h5>
-                            <table class="table table-sm">
-                                <tr>
-                                    <th style="width: 30%">Category:</th>
-                                    <td>
-                                        {% if dataset.category %}
-                                        <span class="badge bg-secondary">{{ dataset.category }}</span>
-                                        {% else %}
-                                        Not specified
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>Data Type:</th>
-                                    <td>
-                                        {% if dataset.data_type %}
-                                        <span class="badge bg-info">{{ dataset.data_type }}</span>
-                                        {% else %}
-                                        Not specified
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>Format:</th>
-                                    <td>{{ dataset.format or 'Unknown' }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Size:</th>
-                                    <td>{{ dataset.size or 'Unknown' }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Records:</th>
-                                    <td>{{ dataset.record_count or 'Unknown' }}</td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div class="mb-4">
-                        <h5 class="mb-3">Tags</h5>
-                        <div>
-                            {% if dataset.tags %}
-                                {% for tag in dataset.tags_list() %}
-                                <span class="badge bg-primary mb-1">{{ tag }}</span>
-                                {% endfor %}
-                            {% else %}
-                                <p class="text-muted">No tags available</p>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Processing history -->
-            {% if dataset.processing %}
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-history me-2"></i>Processing History</h5>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <p><strong>Status:</strong> 
-                            <span class="badge bg-{% if dataset.status == 'completed' %}success{% elif dataset.status == 'processing' %}warning{% elif dataset.status == 'pending' %}info{% elif dataset.status == 'failed' %}danger{% else %}secondary{% endif %}">
-                                {{ dataset.status.title() }}
-                            </span>
-                        </p>
-                        
-                        {% if dataset.processing.progress is not none %}
-                        <div class="progress mb-3" style="height: 10px;">
-                            <div class="progress-bar {% if dataset.status == 'processing' %}progress-bar-striped progress-bar-animated{% endif %}" 
-                                role="progressbar" 
-                                style="width: {{ dataset.processing.progress }}%">
-                                {{ dataset.processing.progress }}%
-                            </div>
-                        </div>
-                        {% endif %}
-                        
-                        <p><strong>Added to queue:</strong> {{ dataset.processing.created_at.strftime('%B %d, %Y %H:%M') }}</p>
-                        
-                        {% if dataset.processing.started_at %}
-                        <p><strong>Processing started:</strong> {{ dataset.processing.started_at.strftime('%B %d, %Y %H:%M') }}</p>
-                        {% endif %}
-                        
-                        {% if dataset.processing.completed_at %}
-                        <p><strong>Processing completed:</strong> {{ dataset.processing.completed_at.strftime('%B %d, %Y %H:%M') }}</p>
-                        {% endif %}
-                        
-                        {% if dataset.processing.error_message %}
-                        <div class="alert alert-danger mt-3">
-                            <h6 class="alert-heading">Processing Error</h6>
-                            <p class="mb-0">{{ dataset.processing.error_message }}</p>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-            {% endif %}
+<div class="container my-4">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('datasets.list') }}">Datasets</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ dataset.title }}</li>
+                </ol>
+            </nav>
+            <h1 class="mb-0">{{ dataset.title }}</h1>
+            <p class="text-muted">Added on {{ dataset.created_at.strftime('%B %d, %Y') }}</p>
         </div>
+    </div>
 
-        <!-- Metadata quality sidebar -->
-        <div class="col-lg-4">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Quality Assessment</h5>
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Details</h5>
+                    {% if current_user.is_authenticated and (not dataset.user_id or dataset.user_id == current_user.id or current_user.is_admin) %}
+                    <div>
+                        <a href="{{ url_for('datasets.edit', dataset_id=dataset.id) }}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                    {% endif %}
                 </div>
                 <div class="card-body">
-                    {% if dataset.metadata %}
-                    <div class="text-center mb-4">
-                        <div class="quality-score {{ 'quality-high' if dataset.metadata.quality_score >= 80 else ('quality-medium' if dataset.metadata.quality_score >= 50 else 'quality-low') }}">
-                            {{ dataset.metadata.quality_score|int }}
+                    <div class="row">
+                        <div class="col-md-12 mb-4">
+                            <h5>Description</h5>
+                            <p>{{ dataset.description or 'No description provided' }}</p>
                         </div>
-                        <p class="mt-2 mb-0">Overall Quality Score</p>
+                        
+                        <div class="col-md-6 mb-3">
+                            <h6>Source</h6>
+                            <p class="mb-0">{{ dataset.source }}</p>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <h6>Category</h6>
+                            <p class="mb-0">{{ dataset.category or 'Uncategorized' }}</p>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <h6>Data Type</h6>
+                            <p class="mb-0">{{ dataset.data_type or 'Not specified' }}</p>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <h6>Format</h6>
+                            <p class="mb-0">{{ dataset.format or 'Unknown' }}</p>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <h6>Size</h6>
+                            <p class="mb-0">{{ dataset.size or 'Unknown' }}</p>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <h6>Record Count</h6>
+                            <p class="mb-0">{{ dataset.record_count or 'Unknown' }}</p>
+                        </div>
+                        
+                        <div class="col-md-12 mb-3">
+                            <h6>Source URL</h6>
+                            {% if dataset.source_url %}
+                            <a href="{{ dataset.source_url }}" target="_blank" class="mb-0 text-break">
+                                {{ dataset.source_url }}
+                                <i class="fas fa-external-link-alt ms-1 small"></i>
+                            </a>
+                            {% else %}
+                            <p class="mb-0">Not provided</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-12">
+                            <h6>Tags</h6>
+                            <div>
+                                {% if dataset.tags_list %}
+                                {% for tag in dataset.tags_list %}
+                                <span class="badge bg-primary me-1">{{ tag }}</span>
+                                {% endfor %}
+                                {% else %}
+                                <p class="mb-0">No tags</p>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
-
-                    <div class="mb-4">
-                        <h6>FAIR Compliance</h6>
-                        <div class="mb-2">
-                            <div class="d-flex justify-content-between mb-1">
-                                <span><i class="fair-indicator fair-f"></i> Findable</span>
-                                <span>{{ dataset.metadata.findable_score|int }}%</span>
-                            </div>
-                            <div class="progress" style="height: 8px;">
-                                <div class="progress-bar bg-success fair-score" role="progressbar" 
-                                     style="width: {{ dataset.metadata.findable_score }}%" 
-                                     data-score="{{ dataset.metadata.findable_score }}" 
-                                     data-category="Findable"></div>
-                            </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="row">
+                <!-- Quality Score Card -->
+                <div class="col-12 mb-4">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Quality Score</h5>
                         </div>
-                        <div class="mb-2">
-                            <div class="d-flex justify-content-between mb-1">
-                                <span><i class="fair-indicator fair-a"></i> Accessible</span>
-                                <span>{{ dataset.metadata.accessible_score|int }}%</span>
+                        <div class="card-body text-center">
+                            {% if quality %}
+                            <div class="quality-score-circle 
+                                {% if quality.quality_score >= 80 %}bg-success{% elif quality.quality_score >= 60 %}bg-info{% elif quality.quality_score >= 40 %}bg-warning{% else %}bg-danger{% endif %}">
+                                <h2 class="mb-0">{{ quality.quality_score|round|int }}</h2>
+                                <p class="mb-0 small">out of 100</p>
                             </div>
-                            <div class="progress" style="height: 8px;">
-                                <div class="progress-bar bg-primary fair-score" role="progressbar" 
-                                     style="width: {{ dataset.metadata.accessible_score }}%" 
-                                     data-score="{{ dataset.metadata.accessible_score }}" 
-                                     data-category="Accessible"></div>
+                            <p class="mt-3 mb-0">
+                                {% if quality.fair_compliant %}
+                                <span class="badge bg-success">FAIR Compliant</span>
+                                {% else %}
+                                <span class="badge bg-warning">Not FAIR Compliant</span>
+                                {% endif %}
+                                
+                                {% if quality.schema_org_compliant %}
+                                <span class="badge bg-success">Schema.org Compliant</span>
+                                {% else %}
+                                <span class="badge bg-warning">Not Schema.org Compliant</span>
+                                {% endif %}
+                            </p>
+                            <div class="mt-3">
+                                <a href="{{ url_for('datasets.quality', dataset_id=dataset.id) }}" class="btn btn-primary">
+                                    <i class="fas fa-chart-bar me-2"></i>
+                                    View Quality Details
+                                </a>
                             </div>
+                            {% else %}
+                            <div class="py-4">
+                                <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                                <p>Quality has not been assessed yet.</p>
+                                <a href="{{ url_for('datasets.assess_quality', dataset_id=dataset.id) }}" class="btn btn-primary">
+                                    <i class="fas fa-chart-bar me-2"></i>
+                                    Assess Quality
+                                </a>
+                            </div>
+                            {% endif %}
                         </div>
-                        <div class="mb-2">
-                            <div class="d-flex justify-content-between mb-1">
-                                <span><i class="fair-indicator fair-i"></i> Interoperable</span>
-                                <span>{{ dataset.metadata.interoperable_score|int }}%</span>
-                            </div>
-                            <div class="progress" style="height: 8px;">
-                                <div class="progress-bar bg-warning fair-score" role="progressbar" 
-                                     style="width: {{ dataset.metadata.interoperable_score }}%" 
-                                     data-score="{{ dataset.metadata.interoperable_score }}" 
-                                     data-category="Interoperable"></div>
-                            </div>
+                    </div>
+                </div>
+                
+                <!-- Status Card -->
+                <div class="col-12 mb-4">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Status</h5>
                         </div>
-                        <div class="mb-2">
-                            <div class="d-flex justify-content-between mb-1">
-                                <span><i class="fair-indicator fair-r"></i> Reusable</span>
-                                <span>{{ dataset.metadata.reusable_score|int }}%</span>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span>Processing Status:</span>
+                                <span class="badge 
+                                    {% if dataset.status == 'completed' %}bg-success
+                                    {% elif dataset.status == 'processing' %}bg-info
+                                    {% elif dataset.status == 'pending' %}bg-warning
+                                    {% elif dataset.status == 'failed' %}bg-danger
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ dataset.status|capitalize }}
+                                </span>
                             </div>
-                            <div class="progress" style="height: 8px;">
-                                <div class="progress-bar bg-purple fair-score" role="progressbar" 
-                                     style="width: {{ dataset.metadata.reusable_score }}%" 
-                                     data-score="{{ dataset.metadata.reusable_score }}" 
-                                     data-category="Reusable"></div>
+                            
+                            {% if processing and processing.status == 'processing' %}
+                            <div class="mb-3">
+                                <label class="form-label d-flex justify-content-between mb-1">
+                                    <span>Progress:</span>
+                                    <span>{{ processing.progress|round|int }}%</span>
+                                </label>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-info" role="progressbar" style="width: {{ processing.progress }}%"></div>
+                                </div>
+                                {% if processing.estimated_completion_time %}
+                                <div class="text-end mt-1">
+                                    <small class="text-muted">Est. completion: {{ processing.estimated_completion_time }}</small>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                            
+                            {% if dataset.status != 'processing' and dataset.status != 'pending' %}
+                            <form action="{{ url_for('datasets.process_dataset', dataset_id=dataset.id) }}" method="post" class="mt-3">
+                                <button type="submit" class="btn btn-outline-primary w-100">
+                                    <i class="fas fa-sync-alt me-2"></i>
+                                    Process Dataset
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Metadata Card -->
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Metadata</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>
+                                {% if dataset.schema_org %}
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Schema.org metadata available
+                                {% else %}
+                                <i class="fas fa-times-circle text-danger me-2"></i>
+                                Schema.org metadata not available
+                                {% endif %}
+                            </p>
+                            
+                            <div class="d-grid">
+                                <a href="{{ url_for('datasets.metadata', dataset_id=dataset.id) }}" class="btn btn-primary">
+                                    <i class="fas fa-file-code me-2"></i>
+                                    View Metadata
+                                </a>
                             </div>
                         </div>
                     </div>
-
-                    <div class="d-grid gap-2">
-                        <a href="{{ url_for('datasets.dataset_metadata', dataset_id=dataset.id) }}" class="btn btn-outline-primary">
-                            <i class="fas fa-code me-1"></i> View Full Metadata
-                        </a>
-                    </div>
-                    
-                    {% if dataset.metadata.recommendations_list() %}
-                    <div class="mt-4">
-                        <h6>Improvement Recommendations</h6>
-                        <ul class="list-group list-group-flush">
-                            {% for rec in dataset.metadata.recommendations_list() %}
-                            <li class="list-group-item px-0">
-                                <i class="fas fa-lightbulb text-warning me-2"></i> {{ rec }}
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    {% endif %}
-                    
-                    {% else %}
-                    <div class="text-center py-4">
-                        <div class="mb-3">
-                            <i class="fas fa-chart-pie fa-3x text-muted"></i>
-                        </div>
-                        <h5>No quality assessment</h5>
-                        <p class="text-muted">Process this dataset to generate quality metrics</p>
-                        {% if dataset.status == 'pending' %}
-                        <a href="{{ url_for('datasets.process_dataset', dataset_id=dataset.id) }}" class="btn btn-primary mt-2">
-                            <i class="fas fa-play me-1"></i> Process Dataset
-                        </a>
-                        {% endif %}
-                    </div>
-                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete the dataset "{{ dataset.title }}"? This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('datasets.delete', dataset_id=dataset.id) }}" method="post">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    .quality-score-circle {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        color: #fff;
+        margin: 0 auto;
+    }
+</style>
 {% endblock %}
