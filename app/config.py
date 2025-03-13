@@ -43,7 +43,8 @@ class ProductionConfig(Config):
     @classmethod
     def init_app(cls, app):
         """Initialize production application"""
-        Config.init_app(app)
+        # Call parent class init_app
+        super().init_app(app)
         
         # Production specific initialization
         # e.g. log to syslog

@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Dataset Metadata Manager{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">Dashboard</h1>
+        <a href="{{ url_for('datasets.add_dataset') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Add New Dataset
+        </a>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="stat-title">Total Datasets</p>
+                        <h2 class="stat-value">{{ stats.totalDatasets }}</h2>
+                    </div>
+                    <div class="stat-icon text-primary">
+                        <i class="fas fa-database"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="stat-title">Processed</p>
+                        <h2 class="stat-value">{{ stats.processedDatasets }}</h2>
+                    </div>
+                    <div class="stat-icon text-success">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="stat-title">FAIR Compliant</p>
+                        <h2 class="stat-value">{{ stats.fairCompliantDatasets }}</h2>
+                    </div>
+                    <div class="stat-icon text-info">
+                        <i class="fas fa-award"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="stat-title">In Queue</p>
+                        <h2 class="stat-value">{{ stats.queuedDatasets }}</h2>
+                    </div>
+                    <div class="stat-icon text-warning">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Datasets -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-table me-2"></i>Recent Datasets</h5>
+        </div>
+        <div class="card-body">
+            {% if recent_datasets %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Source</th>
+                            <th>Category</th>
+                            <th>Status</th>
+                            <th>Added</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dataset in recent_datasets %}
+                        <tr>
+                            <td>
+                                <a href="{{ url_for('datasets.view_dataset', dataset_id=dataset.id) }}" class="text-decoration-none text-primary fw-medium">
+                                    {{ dataset.title }}
+                                </a>
+                            </td>
+                            <td>{{ dataset.source or 'N/A' }}</td>
+                            <td>
+                                {% if dataset.category %}
+                                <span class="badge bg-secondary">{{ dataset.category }}</span>
+                                {% else %}
+                                <span class="text-muted">Not specified</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if dataset.status == 'completed' %}
+                                <span class="badge bg-success">Completed</span>
+                                {% elif dataset.status == 'processing' %}
+                                <span class="badge bg-warning">Processing</span>
+                                {% elif dataset.status == 'pending' %}
+                                <span class="badge bg-info">Pending</span>
+                                {% elif dataset.status == 'failed' %}
+                                <span class="badge bg-danger">Failed</span>
+                                {% else %}
+                                <span class="badge bg-secondary">{{ dataset.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ dataset.created_at.strftime('%b %d, %Y') }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ url_for('datasets.view_dataset', dataset_id=dataset.id) }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('datasets.edit_dataset', dataset_id=dataset.id) }}" class="btn btn-sm btn-outline-secondary">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    {% if dataset.status == 'pending' %}
+                                    <a href="{{ url_for('datasets.process_dataset', dataset_id=dataset.id) }}" class="btn btn-sm btn-outline-success">
+                                        <i class="fas fa-play"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <div class="mb-3">
+                    <i class="fas fa-database fa-3x text-muted"></i>
+                </div>
+                <h5>No datasets yet</h5>
+                <p class="text-muted">Start by adding your first dataset</p>
+                <a href="{{ url_for('datasets.add_dataset') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Add New Dataset
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        <div class="card-footer text-center">
+            <a href="{{ url_for('datasets.list_datasets') }}" class="btn btn-link">View All Datasets</a>
+        </div>
+    </div>
+
+    <!-- Processing Queue -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>Processing Queue</h5>
+        </div>
+        <div class="card-body">
+            {% if processing_queue %}
+            <div class="list-group">
+                {% for item in processing_queue %}
+                <div class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <h6 class="mb-0">{{ item.dataset.title }}</h6>
+                            <small class="text-muted">Added to queue: {{ item.created_at.strftime('%b %d, %Y %H:%M') }}</small>
+                        </div>
+                        <span class="badge bg-{{ 'warning' if item.status == 'processing' else 'info' }}">
+                            {{ item.status.title() }}
+                        </span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar {{ 'progress-bar-striped progress-bar-animated' if item.status == 'processing' else '' }}" 
+                             role="progressbar" style="width: {{ item.progress or 0 }}%">
+                            {{ item.progress or 0 }}%
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <div class="mb-3">
+                    <i class="fas fa-tasks fa-3x text-muted"></i>
+                </div>
+                <h5>No datasets in queue</h5>
+                <p class="text-muted">The processing queue is currently empty</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

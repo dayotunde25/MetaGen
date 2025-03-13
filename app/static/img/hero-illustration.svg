@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="600" height="400" viewBox="0 0 600 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background elements -->
+  <circle cx="300" cy="200" r="150" fill="#E8F0FE" />
+  <circle cx="320" cy="180" r="100" fill="#D1E3FA" />
+  
+  <!-- Database icon -->
+  <g transform="translate(250, 150)">
+    <!-- Database cylinders -->
+    <ellipse cx="50" cy="25" rx="40" ry="15" fill="#3949AB" />
+    <rect x="10" y="25" width="80" height="40" fill="#3949AB" />
+    <ellipse cx="50" cy="65" rx="40" ry="15" fill="#3949AB" />
+    <rect x="10" y="65" width="80" height="40" fill="#3949AB" />
+    <ellipse cx="50" cy="105" rx="40" ry="15" fill="#3949AB" />
+    
+    <!-- Database highlights -->
+    <ellipse cx="50" cy="25" rx="30" ry="10" fill="#5C6BC0" />
+    <ellipse cx="50" cy="65" rx="30" ry="10" fill="#5C6BC0" />
+    <ellipse cx="50" cy="105" rx="30" ry="10" fill="#5C6BC0" />
+  </g>
+  
+  <!-- Document 1 -->
+  <g transform="translate(170, 130)">
+    <rect x="0" y="0" width="60" height="80" rx="3" fill="white" stroke="#BBDEFB" stroke-width="2" />
+    <rect x="10" y="15" width="40" height="5" rx="1" fill="#BBDEFB" />
+    <rect x="10" y="25" width="30" height="5" rx="1" fill="#BBDEFB" />
+    <rect x="10" y="35" width="40" height="5" rx="1" fill="#BBDEFB" />
+    <rect x="10" y="45" width="20" height="5" rx="1" fill="#BBDEFB" />
+    <rect x="10" y="55" width="35" height="5" rx="1" fill="#BBDEFB" />
+    <rect x="10" y="65" width="25" height="5" rx="1" fill="#BBDEFB" />
+  </g>
+  
+  <!-- Document 2 -->
+  <g transform="translate(150, 150) rotate(-10)">
+    <rect x="0" y="0" width="60" height="80" rx="3" fill="white" stroke="#C5CAE9" stroke-width="2" />
+    <rect x="10" y="15" width="40" height="5" rx="1" fill="#C5CAE9" />
+    <rect x="10" y="25" width="30" height="5" rx="1" fill="#C5CAE9" />
+    <rect x="10" y="35" width="40" height="5" rx="1" fill="#C5CAE9" />
+    <rect x="10" y="45" width="20" height="5" rx="1" fill="#C5CAE9" />
+    <rect x="10" y="55" width="35" height="5" rx="1" fill="#C5CAE9" />
+    <rect x="10" y="65" width="25" height="5" rx="1" fill="#C5CAE9" />
+  </g>
+  
+  <!-- Search magnifying glass -->
+  <g transform="translate(370, 120)">
+    <circle cx="25" cy="25" r="20" fill="white" stroke="#26A69A" stroke-width="5" />
+    <line x1="40" y1="40" x2="60" y2="60" stroke="#26A69A" stroke-width="5" stroke-linecap="round" />
+  </g>
+  
+  <!-- FAIR indicators -->
+  <g transform="translate(350, 220)">
+    <circle cx="15" cy="15" r="12" fill="#4CAF50" />
+    <text x="15" y="20" font-family="Arial" font-weight="bold" font-size="14" fill="white" text-anchor="middle">F</text>
+  </g>
+  <g transform="translate(380, 220)">
+    <circle cx="15" cy="15" r="12" fill="#2196F3" />
+    <text x="15" y="20" font-family="Arial" font-weight="bold" font-size="14" fill="white" text-anchor="middle">A</text>
+  </g>
+  <g transform="translate(410, 220)">
+    <circle cx="15" cy="15" r="12" fill="#FFC107" />
+    <text x="15" y="20" font-family="Arial" font-weight="bold" font-size="14" fill="white" text-anchor="middle">I</text>
+  </g>
+  <g transform="translate(440, 220)">
+    <circle cx="15" cy="15" r="12" fill="#9C27B0" />
+    <text x="15" y="20" font-family="Arial" font-weight="bold" font-size="14" fill="white" text-anchor="middle">R</text>
+  </g>
+  
+  <!-- Code bracket -->
+  <g transform="translate(380, 270)">
+    <path d="M0,10 L10,0 L30,20 L10,40 L0,30 L15,20 L0,10 Z" fill="#FF7043" />
+    <path d="M60,10 L50,0 L30,20 L50,40 L60,30 L45,20 L60,10 Z" fill="#FF7043" />
+  </g>
+  
+  <!-- Data flow lines -->
+  <path d="M230,170 C250,180 270,190 290,170" stroke="#3949AB" stroke-width="2" stroke-dasharray="4" />
+  <path d="M355,170 C335,180 315,190 290,170" stroke="#3949AB" stroke-width="2" stroke-dasharray="4" />
+  
+  <!-- Decorative elements -->
+  <circle cx="180" cy="100" r="5" fill="#3949AB" />
+  <circle cx="400" cy="100" r="3" fill="#FF7043" />
+  <circle cx="430" cy="150" r="4" fill="#26A69A" />
+  <circle cx="180" cy="280" r="4" fill="#FFC107" />
+  <circle cx="350" cy="310" r="3" fill="#9C27B0" />
+</svg>

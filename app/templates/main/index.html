@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}Dataset Metadata Manager - AI Research Datasets{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Hero Section -->
+    <section class="py-5">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">Unlock the Power of AI Research Datasets</h1>
+                <p class="lead mb-4">Generate high-quality metadata, ensure FAIR compliance, and leverage semantic search for AI research datasets in Education, Health, and Agriculture.</p>
+                <div class="d-flex gap-3">
+                    {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary btn-lg">
+                        Go to Dashboard
+                    </a>
+                    <a href="{{ url_for('datasets.add_dataset') }}" class="btn btn-outline-primary btn-lg">
+                        Add New Dataset
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">
+                        Get Started
+                    </a>
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary btn-lg">
+                        Sign In
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-lg-6 d-none d-lg-block">
+                <div class="text-center">
+                    <img src="{{ url_for('static', filename='img/hero-illustration.svg') }}" alt="Data illustration" class="img-fluid" style="max-height: 400px;">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-5 bg-light rounded-3 my-5">
+        <div class="container px-4">
+            <div class="text-center mb-5">
+                <h2 class="fw-bold">Key Features</h2>
+                <p class="lead text-muted">Why researchers choose our platform</p>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center p-4">
+                            <div class="mb-3">
+                                <i class="fas fa-search fa-3x text-primary"></i>
+                            </div>
+                            <h5 class="card-title fw-bold">Semantic Search</h5>
+                            <p class="card-text">Find relevant datasets using natural language queries powered by advanced NLP techniques.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center p-4">
+                            <div class="mb-3">
+                                <i class="fas fa-check-circle fa-3x text-primary"></i>
+                            </div>
+                            <h5 class="card-title fw-bold">FAIR Compliance</h5>
+                            <p class="card-text">Ensure your datasets are Findable, Accessible, Interoperable, and Reusable with automatic assessment.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center p-4">
+                            <div class="mb-3">
+                                <i class="fas fa-code fa-3x text-primary"></i>
+                            </div>
+                            <h5 class="card-title fw-bold">Schema.org Metadata</h5>
+                            <p class="card-text">Generate structured metadata compliant with Schema.org standards for better discoverability.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Domain Focus Section -->
+    <section class="py-5 my-5">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Domain Expertise</h2>
+            <p class="lead text-muted">Specialized for key research areas</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-graduation-cap text-primary me-2"></i>Education</h5>
+                        <p class="card-text">Educational datasets including student performance, learning analytics, educational resources, and pedagogical research.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-heartbeat text-primary me-2"></i>Health</h5>
+                        <p class="card-text">Healthcare datasets covering medical research, clinical trials, patient outcomes, and public health statistics.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-leaf text-primary me-2"></i>Agriculture</h5>
+                        <p class="card-text">Agricultural datasets including crop yields, soil conditions, climate impacts, and sustainable farming practices.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="py-5 bg-primary text-white rounded-3 my-5">
+        <div class="container px-4 text-center">
+            <h2 class="fw-bold mb-3">Ready to enhance your research datasets?</h2>
+            <p class="lead mb-4">Join researchers worldwide using our platform to make their datasets more discoverable and reusable.</p>
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('datasets.add_dataset') }}" class="btn btn-light btn-lg px-4 me-sm-3">
+                Add Your Dataset
+            </a>
+            {% else %}
+            <a href="{{ url_for('auth.register') }}" class="btn btn-light btn-lg px-4 me-sm-3">
+                Create Free Account
+            </a>
+            {% endif %}
+        </div>
+    </section>
+</div>
+{% endblock %}

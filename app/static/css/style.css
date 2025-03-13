@@ -1,0 +1,208 @@
+/* Main styles for Dataset Metadata Manager */
+
+/* Global Styles */
+:root {
+    --primary-color: #3949ab;
+    --primary-light: #6f74dd;
+    --primary-dark: #00227b;
+    --secondary-color: #26a69a;
+    --accent-color: #ff7043;
+    --text-dark: #333333;
+    --text-light: #f5f5f5;
+    --bg-light: #f8f9fa;
+    --bg-dark: #263238;
+    --success: #4caf50;
+    --warning: #ff9800;
+    --danger: #f44336;
+    --info: #2196f3;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    color: var(--text-dark);
+    background-color: #fff;
+}
+
+main {
+    flex: 1;
+}
+
+/* Navbar styling */
+.navbar-dark.bg-primary {
+    background-color: var(--primary-color) !important;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+/* Card styling */
+.card {
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin-bottom: 20px;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+}
+
+.card-header {
+    font-weight: 600;
+    border-bottom: none;
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-dark);
+    border-color: var(--primary-dark);
+}
+
+.btn-outline-primary {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+/* Form styles */
+.form-control:focus {
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 0.25rem rgba(57, 73, 171, 0.25);
+}
+
+/* Badge styles */
+.badge.bg-success {
+    background-color: var(--success) !important;
+}
+
+.badge.bg-warning {
+    background-color: var(--warning) !important;
+}
+
+.badge.bg-danger {
+    background-color: var(--danger) !important;
+}
+
+.badge.bg-info {
+    background-color: var(--info) !important;
+}
+
+/* Dashboard stats */
+.stat-card {
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    background-color: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.stat-card .stat-icon {
+    font-size: 2.5rem;
+    opacity: 0.8;
+}
+
+.stat-card .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.stat-card .stat-title {
+    font-size: 1rem;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+/* Dataset cards */
+.dataset-card {
+    height: 100%;
+}
+
+.dataset-card .card-footer {
+    background-color: transparent;
+    border-top: 1px solid rgba(0,0,0,.125);
+}
+
+/* Progress bars */
+.progress {
+    height: 10px;
+    border-radius: 5px;
+}
+
+/* FAIR compliance indicators */
+.fair-indicator {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.fair-f { background-color: #4CAF50; } /* Findable */
+.fair-a { background-color: #2196F3; } /* Accessible */
+.fair-i { background-color: #FFC107; } /* Interoperable */
+.fair-r { background-color: #9C27B0; } /* Reusable */
+
+/* Metadata quality score */
+.quality-score {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: white;
+    margin: 0 auto;
+}
+
+.quality-high {
+    background-color: var(--success);
+}
+
+.quality-medium {
+    background-color: var(--warning);
+}
+
+.quality-low {
+    background-color: var(--danger);
+}
+
+/* Search results */
+.search-result {
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    background-color: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s;
+}
+
+.search-result:hover {
+    transform: translateY(-3px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .stat-card .stat-value {
+        font-size: 1.5rem;
+    }
+    
+    .stat-card .stat-icon {
+        font-size: 2rem;
+    }
+}

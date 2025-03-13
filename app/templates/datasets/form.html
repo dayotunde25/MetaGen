@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}{% if dataset %}Edit Dataset{% else %}Add New Dataset{% endif %} - Dataset Metadata Manager{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white py-3">
+                    <h4 class="mb-0">
+                        <i class="fas fa-{% if dataset %}edit{% else %}plus{% endif %} me-2"></i>
+                        {% if dataset %}Edit Dataset{% else %}Add New Dataset{% endif %}
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" enctype="multipart/form-data">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ form.title.label(class="form-label") }}
+                            {% if form.title.errors %}
+                                {{ form.title(class="form-control is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.title.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.title(class="form-control", placeholder="Enter dataset title") }}
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.description.label(class="form-label") }}
+                            {% if form.description.errors %}
+                                {{ form.description(class="form-control is-invalid", rows=4) }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.description.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.description(class="form-control", rows=4, placeholder="Provide a detailed description of the dataset") }}
+                            {% endif %}
+                            <div class="form-text">A comprehensive description will improve searchability and metadata quality.</div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                {{ form.source.label(class="form-label") }}
+                                {% if form.source.errors %}
+                                    {{ form.source(class="form-control is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.source.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form.source(class="form-control", placeholder="e.g., 'World Health Organization'") }}
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.source_url.label(class="form-label") }}
+                                {% if form.source_url.errors %}
+                                    {{ form.source_url(class="form-control is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.source_url.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form.source_url(class="form-control", placeholder="https://example.com/dataset") }}
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                {{ form.data_type.label(class="form-label") }}
+                                {% if form.data_type.errors %}
+                                    {{ form.data_type(class="form-select is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.data_type.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form.data_type(class="form-select") }}
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.category.label(class="form-label") }}
+                                {% if form.category.errors %}
+                                    {{ form.category(class="form-select is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.category.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form.category(class="form-select") }}
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            {{ form.tags.label(class="form-label") }}
+                            {% if form.tags.errors %}
+                                {{ form.tags(class="form-control is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.tags.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.tags(class="form-control", placeholder="e.g., covid-19, healthcare, statistics") }}
+                            {% endif %}
+                            <div class="form-text">Separate tags with commas. Good tags improve searchability.</div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('datasets.list_datasets') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i> Back to Datasets
+                            </a>
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

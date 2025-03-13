@@ -1,152 +1,314 @@
+"""
+Metadata models for datasets.
+"""
+
 from datetime import datetime
-import json
+from typing import Dict, Any, List, Optional
+from sqlalchemy import Column, Integer, String, Text, DateTime, Float, Boolean, ForeignKey, JSON
+from sqlalchemy.orm import relationship
 
-from app.models import db
+from app.models.base import Base, db
 
-class MetadataQuality(db.Model):
-    """Model to track metadata quality metrics and FAIR compliance"""
+
+class MetadataQuality(Base):
+    """
+    MetadataQuality model representing quality assessment for a dataset.
+    
+    Attributes:
+        id: Unique identifier
+        dataset_id: ID of the dataset this quality assessment relates to
+        quality_score: Overall quality score (0-100)
+        completeness: Completeness score (0-100)
+        consistency: Consistency score (0-100)
+        accuracy: Accuracy score (0-100)
+        timeliness: Timeliness score (0-100)
+        conformity: Conformity score (0-100)
+        integrity: Integrity score (0-100)
+        findable_score: FAIR Findable score (0-100)
+        accessible_score: FAIR Accessible score (0-100)
+        interoperable_score: FAIR Interoperable score (0-100)
+        reusable_score: FAIR Reusable score (0-100)
+        fair_compliant: Whether the dataset is FAIR compliant
+        schema_org_compliant: Whether the dataset is Schema.org compliant
+        issues: List of identified issues (JSON or comma-separated string)
+        recommendations: List of recommendations for improvement
+        assessment_date: Date of the quality assessment
+    """
+    
     __tablename__ = 'metadata_quality'
     
-    id = db.Column(db.Integer, primary_key=True)
-    dataset_id = db.Column(db.Integer, db.ForeignKey('datasets.id'))
+    id = Column(Integer, primary_key=True)
+    dataset_id = Column(Integer, ForeignKey('datasets.id'), nullable=False)
+    quality_score = Column(Float, nullable=False, default=0.0)
+    completeness = Column(Float, nullable=False, default=0.0)
+    consistency = Column(Float, nullable=False, default=0.0)
+    accuracy = Column(Float, nullable=False, default=0.0)
+    timeliness = Column(Float, nullable=False, default=0.0)
+    conformity = Column(Float, nullable=False, default=0.0)
+    integrity = Column(Float, nullable=False, default=0.0)
+    findable_score = Column(Float, nullable=False, default=0.0)
+    accessible_score = Column(Float, nullable=False, default=0.0)
+    interoperable_score = Column(Float, nullable=False, default=0.0)
+    reusable_score = Column(Float, nullable=False, default=0.0)
+    fair_compliant = Column(Boolean, nullable=False, default=False)
+    schema_org_compliant = Column(Boolean, nullable=False, default=False)
+    issues = Column(Text, nullable=True)
+    recommendations = Column(Text, nullable=True)
+    assessment_date = Column(DateTime, default=datetime.utcnow)
     
-    # Quality metrics
-    quality_score = db.Column(db.Float)  # Overall quality score (0-100)
-    completeness = db.Column(db.Float)   # Completeness score (0-100)
-    consistency = db.Column(db.Float)    # Consistency score (0-100)
-    
-    # FAIR compliance scores
-    findable_score = db.Column(db.Float)       # Findable score (0-100)
-    accessible_score = db.Column(db.Float)     # Accessible score (0-100)
-    interoperable_score = db.Column(db.Float)  # Interoperable score (0-100)
-    reusable_score = db.Column(db.Float)       # Reusable score (0-100)
-    fair_compliant = db.Column(db.Boolean, default=False)
-    
-    # Schema.org compliance
-    schema_org_compliant = db.Column(db.Boolean, default=False)
-    schema_org_metadata = db.Column(db.Text)  # JSON representation of Schema.org metadata
-    
-    # Issues and recommendations
-    issues = db.Column(db.Text)  # JSON list of issues
-    recommendations = db.Column(db.Text)  # JSON list of recommendations
-    
-    # Timestamps
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
-    def __init__(self, dataset_id, quality_score=0, completeness=0, consistency=0,
-                 findable_score=0, accessible_score=0, interoperable_score=0, reusable_score=0,
-                 fair_compliant=False, schema_org_compliant=False, schema_org_metadata=None,
-                 issues=None, recommendations=None):
-        self.dataset_id = dataset_id
-        self.quality_score = quality_score
-        self.completeness = completeness
-        self.consistency = consistency
-        self.findable_score = findable_score
-        self.accessible_score = accessible_score
-        self.interoperable_score = interoperable_score
-        self.reusable_score = reusable_score
-        self.fair_compliant = fair_compliant
-        self.schema_org_compliant = schema_org_compliant
-        self.schema_org_metadata = json.dumps(schema_org_metadata) if schema_org_metadata else None
-        self.issues = json.dumps(issues) if issues else None
-        self.recommendations = json.dumps(recommendations) if recommendations else None
+    # Relationships
+    dataset = relationship('Dataset', back_populates='metadata_quality')
     
     @property
-    def issues_list(self):
-        """Return issues as a list"""
+    def fair_scores(self) -> Dict[str, float]:
+        """
+        Get FAIR scores as a dictionary.
+        
+        Returns:
+            Dictionary with FAIR component scores
+        """
+        return {
+            'findable': self.findable_score,
+            'accessible': self.accessible_score,
+            'interoperable': self.interoperable_score,
+            'reusable': self.reusable_score,
+            'overall': (self.findable_score + self.accessible_score + 
+                        self.interoperable_score + self.reusable_score) / 4.0
+        }
+    
+    @property
+    def dimension_scores(self) -> Dict[str, float]:
+        """
+        Get dimension scores as a dictionary.
+        
+        Returns:
+            Dictionary with dimension scores
+        """
+        return {
+            'completeness': self.completeness,
+            'consistency': self.consistency,
+            'accuracy': self.accuracy,
+            'timeliness': self.timeliness,
+            'conformity': self.conformity,
+            'integrity': self.integrity
+        }
+    
+    @property
+    def issues_list(self) -> List[str]:
+        """
+        Get issues as a list.
+        
+        Returns:
+            List of issue strings
+        """
+        import json
+        
         if not self.issues:
             return []
-        return json.loads(self.issues)
-    
-    @issues_list.setter
-    def issues_list(self, issues):
-        """Set issues from a list"""
-        self.issues = json.dumps(issues) if issues else None
+        
+        # Try to parse as JSON first
+        try:
+            return json.loads(self.issues)
+        except json.JSONDecodeError:
+            # Fall back to comma-separated string
+            return [issue.strip() for issue in self.issues.split(',')]
     
     @property
-    def recommendations_list(self):
-        """Return recommendations as a list"""
+    def recommendations_list(self) -> List[str]:
+        """
+        Get recommendations as a list.
+        
+        Returns:
+            List of recommendation strings
+        """
+        import json
+        
         if not self.recommendations:
             return []
-        return json.loads(self.recommendations)
+        
+        # Try to parse as JSON first
+        try:
+            return json.loads(self.recommendations)
+        except json.JSONDecodeError:
+            # Fall back to comma-separated string
+            return [rec.strip() for rec in self.recommendations.split(',')]
     
-    @recommendations_list.setter
-    def recommendations_list(self, recommendations):
-        """Set recommendations from a list"""
-        self.recommendations = json.dumps(recommendations) if recommendations else None
+    @classmethod
+    def get_by_dataset(cls, dataset_id: int) -> Optional['MetadataQuality']:
+        """
+        Get metadata quality for a dataset.
+        
+        Args:
+            dataset_id: ID of the dataset
+            
+        Returns:
+            MetadataQuality instance or None
+        """
+        return db.session.query(cls).filter_by(dataset_id=dataset_id).first()
     
-    @property
-    def schema_org_json(self):
-        """Return schema.org metadata as JSON object"""
-        if not self.schema_org_metadata:
-            return {}
-        return json.loads(self.schema_org_metadata)
+    @classmethod
+    def create(cls, **kwargs) -> 'MetadataQuality':
+        """
+        Create a new metadata quality record.
+        
+        Args:
+            **kwargs: Keyword arguments with attributes
+            
+        Returns:
+            New MetadataQuality instance
+        """
+        quality = cls(**kwargs)
+        db.session.add(quality)
+        db.session.commit()
+        return quality
     
-    @schema_org_json.setter
-    def schema_org_json(self, data):
-        """Set schema.org metadata from JSON object"""
-        self.schema_org_metadata = json.dumps(data) if data else None
+    def update(self, **kwargs) -> 'MetadataQuality':
+        """
+        Update the metadata quality record.
+        
+        Args:
+            **kwargs: Keyword arguments with updated attributes
+            
+        Returns:
+            Updated MetadataQuality instance
+        """
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+        
+        db.session.commit()
+        return self
     
-    def to_dict(self):
-        """Convert to dictionary"""
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Convert to dictionary.
+        
+        Returns:
+            Dictionary representation
+        """
         return {
             'id': self.id,
             'dataset_id': self.dataset_id,
             'quality_score': self.quality_score,
             'completeness': self.completeness,
             'consistency': self.consistency,
-            'findable_score': self.findable_score,
-            'accessible_score': self.accessible_score,
-            'interoperable_score': self.interoperable_score,
-            'reusable_score': self.reusable_score,
+            'accuracy': self.accuracy,
+            'timeliness': self.timeliness,
+            'conformity': self.conformity,
+            'integrity': self.integrity,
+            'fair_scores': self.fair_scores,
             'fair_compliant': self.fair_compliant,
             'schema_org_compliant': self.schema_org_compliant,
-            'schema_org_metadata': self.schema_org_json,
             'issues': self.issues_list,
             'recommendations': self.recommendations_list,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+            'assessment_date': self.assessment_date
         }
+
+
+class ProcessingQueue(Base):
+    """
+    ProcessingQueue model for tracking dataset processing status.
     
-    def __repr__(self):
-        return f'<MetadataQuality dataset_id={self.dataset_id}>'
-
-
-class ProcessingQueue(db.Model):
-    """Model to track dataset processing queue"""
+    Attributes:
+        id: Unique identifier
+        dataset_id: ID of the dataset in the queue
+        status: Processing status (pending, processing, completed, failed)
+        priority: Priority level (1-10, higher is more important)
+        started_at: When processing started
+        completed_at: When processing completed
+        error: Error message if processing failed
+        progress: Processing progress percentage (0-100)
+        estimated_completion_time: Estimated time to completion
+    """
+    
     __tablename__ = 'processing_queue'
     
-    id = db.Column(db.Integer, primary_key=True)
-    dataset_id = db.Column(db.Integer, db.ForeignKey('datasets.id'))
-    status = db.Column(db.String(64), default='queued')  # queued, processing, completed, failed
-    progress = db.Column(db.Float, default=0)  # Processing progress (0-100)
-    priority = db.Column(db.Integer, default=1)  # Processing priority (higher is more important)
-    error_message = db.Column(db.Text)  # Error message if processing failed
-    started_at = db.Column(db.DateTime)  # When processing started
-    completed_at = db.Column(db.DateTime)  # When processing completed
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    id = Column(Integer, primary_key=True)
+    dataset_id = Column(Integer, ForeignKey('datasets.id'), nullable=False)
+    status = Column(String(20), default='pending')
+    priority = Column(Integer, default=5)
+    queued_at = Column(DateTime, default=datetime.utcnow)
+    started_at = Column(DateTime, nullable=True)
+    completed_at = Column(DateTime, nullable=True)
+    error = Column(Text, nullable=True)
+    progress = Column(Float, default=0.0)
+    estimated_completion_time = Column(String(50), nullable=True)
     
-    def __init__(self, dataset_id, status='queued', priority=1):
-        self.dataset_id = dataset_id
-        self.status = status
-        self.priority = priority
+    # Relationships
+    dataset = relationship('Dataset', back_populates='processing_queue')
     
-    def to_dict(self):
-        """Convert to dictionary"""
+    @classmethod
+    def get_queue(cls) -> List['ProcessingQueue']:
+        """
+        Get all items in the processing queue.
+        
+        Returns:
+            List of ProcessingQueue items
+        """
+        return db.session.query(cls).order_by(cls.priority.desc(), cls.queued_at.asc()).all()
+    
+    @classmethod
+    def get_by_dataset(cls, dataset_id: int) -> Optional['ProcessingQueue']:
+        """
+        Get queue item for a dataset.
+        
+        Args:
+            dataset_id: ID of the dataset
+            
+        Returns:
+            ProcessingQueue instance or None
+        """
+        return db.session.query(cls).filter_by(dataset_id=dataset_id).first()
+    
+    @classmethod
+    def create(cls, **kwargs) -> 'ProcessingQueue':
+        """
+        Create a new processing queue item.
+        
+        Args:
+            **kwargs: Keyword arguments with attributes
+            
+        Returns:
+            New ProcessingQueue instance
+        """
+        queue_item = cls(**kwargs)
+        db.session.add(queue_item)
+        db.session.commit()
+        return queue_item
+    
+    def update(self, **kwargs) -> 'ProcessingQueue':
+        """
+        Update the queue item.
+        
+        Args:
+            **kwargs: Keyword arguments with updated attributes
+            
+        Returns:
+            Updated ProcessingQueue instance
+        """
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+        
+        db.session.commit()
+        return self
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Convert to dictionary.
+        
+        Returns:
+            Dictionary representation
+        """
         return {
             'id': self.id,
             'dataset_id': self.dataset_id,
             'status': self.status,
-            'progress': self.progress,
             'priority': self.priority,
-            'error_message': self.error_message,
-            'started_at': self.started_at.isoformat() if self.started_at else None,
-            'completed_at': self.completed_at.isoformat() if self.completed_at else None,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+            'queued_at': self.queued_at,
+            'started_at': self.started_at,
+            'completed_at': self.completed_at,
+            'error': self.error,
+            'progress': self.progress,
+            'estimated_completion_time': self.estimated_completion_time
         }
-    
-    def __repr__(self):
-        return f'<ProcessingQueue dataset_id={self.dataset_id}, status={self.status}>'

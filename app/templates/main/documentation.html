@@ -1,0 +1,527 @@
+{% extends "base.html" %}
+
+{% block title %}Documentation - Dataset Metadata Manager{% endblock %}
+
+{% block styles %}
+<style>
+    .doc-sidebar {
+        position: sticky;
+        top: 2rem;
+    }
+    .doc-content h2 {
+        margin-top: 2rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+    .doc-content h3 {
+        margin-top: 1.5rem;
+    }
+    .doc-content pre {
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-radius: 0.5rem;
+    }
+    .doc-content code {
+        background-color: #f8f9fa;
+        padding: 0.2rem 0.4rem;
+        border-radius: 0.25rem;
+    }
+    .doc-nav .nav-link {
+        padding: 0.5rem 1rem;
+        border-left: 2px solid transparent;
+    }
+    .doc-nav .nav-link.active {
+        border-left: 2px solid var(--primary-color);
+        background-color: rgba(0,0,0,0.03);
+    }
+    .schema-example {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Documentation</h1>
+    
+    <div class="row">
+        <!-- Documentation Sidebar -->
+        <div class="col-lg-3">
+            <div class="doc-sidebar">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Contents</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <nav class="doc-nav">
+                            <div class="nav flex-column">
+                                <a class="nav-link" href="#introduction">Introduction</a>
+                                <a class="nav-link" href="#getting-started">Getting Started</a>
+                                <a class="nav-link" href="#datasets">Working with Datasets</a>
+                                <a class="nav-link" href="#metadata">Metadata Generation</a>
+                                <a class="nav-link" href="#fair">FAIR Principles</a>
+                                <a class="nav-link" href="#schema">Schema.org Standard</a>
+                                <a class="nav-link" href="#search">Semantic Search</a>
+                                <a class="nav-link" href="#api">API Reference</a>
+                                <a class="nav-link" href="#faq">FAQ</a>
+                            </div>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Documentation Content -->
+        <div class="col-lg-9">
+            <div class="card">
+                <div class="card-body doc-content">
+                    <section id="introduction">
+                        <h2>Introduction</h2>
+                        <p>
+                            The Dataset Metadata Manager is a comprehensive tool designed to help researchers and data scientists manage, enrich, and discover AI research datasets. Our platform focuses on datasets in the Education, Health, and Agriculture domains, implementing FAIR principles and Schema.org standards to ensure your datasets are discoverable, accessible, interoperable, and reusable.
+                        </p>
+                        <p>
+                            Key features of our platform include:
+                        </p>
+                        <ul>
+                            <li>Automatic metadata generation following Schema.org standards</li>
+                            <li>FAIR principles assessment and recommendations</li>
+                            <li>Semantic search capabilities using advanced NLP techniques</li>
+                            <li>Quality assessment and improvement suggestions</li>
+                            <li>Dataset processing and analysis tools</li>
+                        </ul>
+                    </section>
+                    
+                    <section id="getting-started">
+                        <h2>Getting Started</h2>
+                        <p>
+                            To begin using the Dataset Metadata Manager, follow these steps:
+                        </p>
+                        <ol>
+                            <li>
+                                <h5>Create an account</h5>
+                                <p>Register with your email address and set up a username and password.</p>
+                            </li>
+                            <li>
+                                <h5>Add your first dataset</h5>
+                                <p>From the dashboard, click "Add New Dataset" and fill in the basic information. You can either upload a dataset file or provide a URL to an external dataset.</p>
+                            </li>
+                            <li>
+                                <h5>Process the dataset</h5>
+                                <p>Once added, you can process the dataset to generate metadata, assess its quality, and evaluate FAIR compliance.</p>
+                            </li>
+                            <li>
+                                <h5>Explore recommendations</h5>
+                                <p>Review the generated metadata and follow the recommendations to improve your dataset's quality and FAIR compliance.</p>
+                            </li>
+                        </ol>
+                    </section>
+                    
+                    <section id="datasets">
+                        <h2>Working with Datasets</h2>
+                        
+                        <h3>Adding a Dataset</h3>
+                        <p>
+                            When adding a dataset, provide as much information as possible. A comprehensive title, detailed description, and accurate source information greatly improve metadata quality and searchability.
+                        </p>
+                        
+                        <h3>Supported Formats</h3>
+                        <p>
+                            The platform supports various dataset formats including:
+                        </p>
+                        <ul>
+                            <li><strong>CSV/TSV:</strong> Comma or tab-separated values</li>
+                            <li><strong>JSON:</strong> JavaScript Object Notation format</li>
+                            <li><strong>XML:</strong> Extensible Markup Language</li>
+                            <li><strong>Excel:</strong> XLSX and XLS formats</li>
+                            <li><strong>Text:</strong> Plain text data</li>
+                        </ul>
+                        
+                        <h3>Dataset Processing</h3>
+                        <p>
+                            Processing a dataset involves several steps:
+                        </p>
+                        <ol>
+                            <li>File format validation and parsing</li>
+                            <li>Structure analysis and schema detection</li>
+                            <li>Metadata extraction from dataset content</li>
+                            <li>Schema.org metadata generation</li>
+                            <li>FAIR principles assessment</li>
+                            <li>Quality scoring and recommendations</li>
+                        </ol>
+                        <p>
+                            Processing time varies depending on dataset size and complexity. Larger datasets may take several minutes to process.
+                        </p>
+                    </section>
+                    
+                    <section id="metadata">
+                        <h2>Metadata Generation</h2>
+                        <p>
+                            The platform automatically generates rich metadata for your datasets, including:
+                        </p>
+                        <ul>
+                            <li>Basic descriptive metadata (title, description, creator, dates)</li>
+                            <li>Technical metadata (format, size, record count, column names)</li>
+                            <li>Content-based metadata (keywords, variable measured, temporal coverage)</li>
+                            <li>Provenance metadata (source, version, license)</li>
+                            <li>Quality metrics (completeness, consistency, FAIR compliance)</li>
+                        </ul>
+                        
+                        <h3>Quality Assessment</h3>
+                        <p>
+                            Dataset quality is assessed based on several factors:
+                        </p>
+                        <ul>
+                            <li><strong>Completeness:</strong> How comprehensive is the metadata? Are all essential fields populated?</li>
+                            <li><strong>Consistency:</strong> Is the data internally consistent? Are there conflicts or anomalies?</li>
+                            <li><strong>FAIR Compliance:</strong> Does the dataset meet FAIR principles?</li>
+                            <li><strong>Schema.org Compliance:</strong> Does the metadata follow Schema.org standards?</li>
+                        </ul>
+                        <p>
+                            Based on these assessments, the system generates a quality score from 0-100 and provides specific recommendations for improvement.
+                        </p>
+                    </section>
+                    
+                    <section id="fair">
+                        <h2>FAIR Principles</h2>
+                        <p>
+                            FAIR stands for Findable, Accessible, Interoperable, and Reusable. These principles are designed to guide data management and stewardship practices, making data more valuable for both humans and machines.
+                        </p>
+                        
+                        <div class="row mt-4">
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <h5 class="card-title"><i class="fas fa-search text-success me-2"></i>Findable</h5>
+                                        <p class="card-text">Data should be easy to find for both humans and computers.</p>
+                                        <ul>
+                                            <li>Assigned unique and persistent identifiers</li>
+                                            <li>Rich descriptions (metadata)</li>
+                                            <li>Registered or indexed in searchable resources</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <h5 class="card-title"><i class="fas fa-key text-primary me-2"></i>Accessible</h5>
+                                        <p class="card-text">Once found, data should be retrievable using standardized protocols.</p>
+                                        <ul>
+                                            <li>Retrievable by identifier using standard protocols</li>
+                                            <li>Protocols that are open, free, and universally implementable</li>
+                                            <li>Authentication and authorization procedures if necessary</li>
+                                            <li>Metadata remains accessible even when data is no longer available</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <h5 class="card-title"><i class="fas fa-exchange-alt text-warning me-2"></i>Interoperable</h5>
+                                        <p class="card-text">Data should integrate with other data and work with applications or workflows.</p>
+                                        <ul>
+                                            <li>Uses formal, accessible, shared, and broadly applicable language</li>
+                                            <li>Uses vocabularies that follow FAIR principles</li>
+                                            <li>Includes qualified references to other data</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <h5 class="card-title"><i class="fas fa-redo text-purple me-2"></i>Reusable</h5>
+                                        <p class="card-text">Data should be well-described for replication or combination in different settings.</p>
+                                        <ul>
+                                            <li>Described with accurate and relevant attributes</li>
+                                            <li>Released with a clear and accessible data usage license</li>
+                                            <li>Detailed provenance</li>
+                                            <li>Meets domain-relevant community standards</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    
+                    <section id="schema">
+                        <h2>Schema.org Standard</h2>
+                        <p>
+                            Schema.org is a collaborative community activity that creates, maintains, and promotes schemas for structured data on the Internet. Our platform follows the Schema.org <a href="https://schema.org/Dataset" target="_blank">Dataset</a> schema, which provides a standardized way to describe datasets.
+                        </p>
+                        <p>
+                            The generated metadata is formatted as JSON-LD (JSON for Linking Data), which can be embedded in web pages to make datasets more discoverable by search engines and data catalogs.
+                        </p>
+                        
+                        <h3>Example Schema.org Metadata</h3>
+                        <div class="card mt-3">
+                            <div class="card-body schema-example">
+<pre>{
+  "@context": "https://schema.org/",
+  "@type": "Dataset",
+  "name": "Student Performance Dataset",
+  "description": "A comprehensive dataset of student academic performance in mathematics and science subjects",
+  "creator": {
+    "@type": "Organization",
+    "name": "Department of Education"
+  },
+  "license": "https://creativecommons.org/licenses/by/4.0/",
+  "datePublished": "2022-05-15",
+  "keywords": ["education", "academic performance", "statistics", "student data"],
+  "variableMeasured": [
+    {
+      "@type": "PropertyValue",
+      "name": "math_score",
+      "description": "Student's score in mathematics assessment"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "science_score",
+      "description": "Student's score in science assessment"
+    }
+  ],
+  "temporalCoverage": "2021-09/2022-06",
+  "distribution": {
+    "@type": "DataDownload",
+    "contentUrl": "https://example.org/datasets/student-performance.csv",
+    "encodingFormat": "CSV"
+  }
+}</pre>
+                            </div>
+                        </div>
+                    </section>
+                    
+                    <section id="search">
+                        <h2>Semantic Search</h2>
+                        <p>
+                            Our platform employs advanced natural language processing (NLP) techniques to enable semantic search. This means you can find datasets based on the meaning of your query, not just matching keywords.
+                        </p>
+                        
+                        <h3>How It Works</h3>
+                        <p>
+                            The semantic search capabilities work through:
+                        </p>
+                        <ul>
+                            <li><strong>Text preprocessing:</strong> Tokenization, lemmatization, and stop word removal</li>
+                            <li><strong>TF-IDF analysis:</strong> Identifying important terms in datasets</li>
+                            <li><strong>Semantic similarity calculation:</strong> Finding datasets related to your query's meaning</li>
+                            <li><strong>Relevance ranking:</strong> Sorting results by relevance score</li>
+                        </ul>
+                        
+                        <h3>Search Tips</h3>
+                        <ul>
+                            <li>Use natural language phrases instead of just keywords</li>
+                            <li>Include domain-specific terminology for better results</li>
+                            <li>Combine search with category and data type filters</li>
+                            <li>Try different phrasings if you don't get the expected results</li>
+                        </ul>
+                    </section>
+                    
+                    <section id="api">
+                        <h2>API Reference</h2>
+                        <p>
+                            The platform provides a RESTful API for programmatic access to datasets and metadata. All API endpoints return JSON responses.
+                        </p>
+                        
+                        <h3>Authentication</h3>
+                        <p>
+                            API requests require authentication using an API key. You can generate an API key from your user profile.
+                        </p>
+                        
+                        <h3>Endpoints</h3>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Endpoint</th>
+                                        <th>Method</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>/api/datasets</code></td>
+                                        <td>GET</td>
+                                        <td>List all datasets</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>/api/datasets/{id}</code></td>
+                                        <td>GET</td>
+                                        <td>Get a specific dataset</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>/api/datasets</code></td>
+                                        <td>POST</td>
+                                        <td>Create a new dataset</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>/api/datasets/{id}</code></td>
+                                        <td>PUT</td>
+                                        <td>Update a dataset</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>/api/datasets/{id}</code></td>
+                                        <td>DELETE</td>
+                                        <td>Delete a dataset</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>/api/search</code></td>
+                                        <td>GET</td>
+                                        <td>Search datasets</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>/api/metadata-quality/{datasetId}</code></td>
+                                        <td>GET</td>
+                                        <td>Get metadata quality for a dataset</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>/api/process-dataset/{id}</code></td>
+                                        <td>POST</td>
+                                        <td>Process a dataset</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>/api/stats</code></td>
+                                        <td>GET</td>
+                                        <td>Get system statistics</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <p>
+                            For detailed API documentation including request parameters and response formats, please refer to the <a href="#">API Documentation</a>.
+                        </p>
+                    </section>
+                    
+                    <section id="faq">
+                        <h2>Frequently Asked Questions</h2>
+                        
+                        <div class="accordion" id="faqAccordion">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="faqOne">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                                        What types of datasets work best with this platform?
+                                    </button>
+                                </h2>
+                                <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="faqOne" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        The platform is optimized for research datasets in the Education, Health, and Agriculture domains. It works particularly well with tabular data (CSV, Excel), but also supports other formats like JSON, XML, and text data. Datasets with clear structure and descriptive column names will yield the best metadata quality.
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="faqTwo">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                        How can I improve my dataset's FAIR compliance?
+                                    </button>
+                                </h2>
+                                <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="faqTwo" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        To improve FAIR compliance, follow these key practices:
+                                        <ul>
+                                            <li>Provide comprehensive metadata including detailed descriptions</li>
+                                            <li>Use standardized vocabularies and terms whenever possible</li>
+                                            <li>Specify a clear license for your dataset</li>
+                                            <li>Include information about data collection methodology</li>
+                                            <li>Document any data processing or transformations</li>
+                                            <li>Follow the specific recommendations provided after processing your dataset</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="faqThree">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                        What are the file size limits for datasets?
+                                    </button>
+                                </h2>
+                                <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="faqThree" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        The platform supports datasets up to 50MB in size for direct uploads. For larger datasets, we recommend providing a URL to the dataset location instead of uploading the file directly. Processing time increases with dataset size.
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="faqFour">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                        How can I use the generated Schema.org metadata?
+                                    </button>
+                                </h2>
+                                <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="faqFour" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        The Schema.org metadata can be used in several ways:
+                                        <ul>
+                                            <li>Embed it in HTML pages that describe your dataset to improve SEO and discoverability</li>
+                                            <li>Include it in data repositories and catalogs</li>
+                                            <li>Use it as part of dataset documentation</li>
+                                            <li>Submit it to search engines to improve dataset findability</li>
+                                        </ul>
+                                        You can copy the JSON-LD code from the metadata view page and include it in a script tag in your HTML.
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="faqFive">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                                        Does the platform store my dataset content?
+                                    </button>
+                                </h2>
+                                <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="faqFive" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        By default, the platform processes your dataset to extract metadata but does not permanently store the full dataset content. It keeps a reference to the dataset's location (URL) and stores the generated metadata, quality assessments, and processing results. If you upload a file directly, you can choose whether to have the platform store a copy or just process it and discard the content.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Make the sidebar nav links active when clicked
+        const navLinks = document.querySelectorAll('.doc-nav .nav-link');
+        navLinks.forEach(function(link) {
+            link.addEventListener('click', function() {
+                navLinks.forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+        
+        // Highlight the section in the sidebar when scrolled to
+        window.addEventListener('scroll', function() {
+            const sections = document.querySelectorAll('section[id]');
+            let currentSection = '';
+            
+            sections.forEach(function(section) {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if(window.pageYOffset >= sectionTop - 100) {
+                    currentSection = section.getAttribute('id');
+                }
+            });
+            
+            if(currentSection !== '') {
+                navLinks.forEach(function(link) {
+                    link.classList.remove('active');
+                    if(link.getAttribute('href') === '#' + currentSection) {
+                        link.classList.add('active');
+                    }
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}

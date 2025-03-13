@@ -1,12 +1,19 @@
+"""
+Models package initialization.
+"""
+
 from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
 from flask_login import LoginManager
 
-# Initialize extensions
-db = SQLAlchemy()
-migrate = Migrate()
-login_manager = LoginManager()
+from app.models.base import db
+from app.models.user import User
+from app.models.dataset import Dataset
+from app.models.metadata import MetadataQuality, ProcessingQueue
 
-# Configure login manager
-login_manager.login_view = 'auth.login'
-login_manager.login_message_category = 'info'
+__all__ = [
+    'db',
+    'User',
+    'Dataset',
+    'MetadataQuality',
+    'ProcessingQueue'
+]
