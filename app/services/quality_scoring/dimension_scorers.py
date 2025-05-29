@@ -970,8 +970,10 @@ class ConformityScorer(BaseDimensionScorer):
         score = 0.0
         
         # F1: Globally unique, persistent identifier
-        if hasattr(dataset, 'identifier') and dataset.identifier:
-            score += 25.0
+        if hasattr(dataset, 'persistent_id') and dataset.persistent_id:
+            score += 30.0  # Higher score for persistent ID
+        elif hasattr(dataset, 'identifier') and dataset.identifier:
+            score += 15.0  # Partial score for basic identifier
         else:
             self.add_recommendation("Assign a persistent identifier to improve findability")
         
@@ -1047,12 +1049,14 @@ class ConformityScorer(BaseDimensionScorer):
         score = 0.0
         
         # I1: Knowledge representation language
-        if hasattr(dataset, 'schema_org') and dataset.schema_org:
-            score += 30.0
+        if hasattr(dataset, 'schema_org_json') and dataset.schema_org_json:
+            score += 35.0  # Higher score for full Schema.org JSON-LD
+        elif hasattr(dataset, 'schema_org') and dataset.schema_org:
+            score += 25.0
         elif hasattr(dataset, 'format') and dataset.format in ['json', 'xml', 'rdf', 'csv']:
-            score += 20.0
+            score += 15.0
         else:
-            self.add_recommendation("Use a formal, accessible knowledge representation language")
+            self.add_recommendation("Use a formal, accessible knowledge representation language like Schema.org")
         
         # I2: FAIR vocabularies
         if hasattr(dataset, 'vocabulary') and dataset.vocabulary:

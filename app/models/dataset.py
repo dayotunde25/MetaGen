@@ -5,7 +5,7 @@ Dataset model and related database operations.
 from datetime import datetime
 from typing import List, Optional, Dict, Any, Union
 
-from mongoengine import Document, StringField, IntField, DateTimeField, BooleanField, ReferenceField
+from mongoengine import Document, StringField, IntField, DateTimeField, BooleanField, ReferenceField, FloatField
 from bson import ObjectId
 
 class Dataset(Document):
@@ -68,6 +68,29 @@ class Dataset(Document):
     vocabulary = StringField(max_length=100)
     related_datasets = StringField()
     provenance = StringField()
+
+    # Enhanced Schema.org and FAIR compliance fields
+    persistent_id = StringField(max_length=100)  # DOI-like identifier
+    version = StringField(max_length=20, default='1.0')
+    access_url = StringField(max_length=512)
+    access_protocol = StringField(max_length=50, default='HTTP')
+    distribution_format = StringField(max_length=50)
+    content_size = StringField(max_length=50)
+    encoding_format = StringField(max_length=50)
+    date_published = DateTimeField()
+    date_modified = DateTimeField()
+    creator_type = StringField(max_length=50, default='Person')  # Person or Organization
+    publisher_type = StringField(max_length=50, default='Organization')
+    variable_measured = StringField()  # JSON string of measured variables
+    measurement_technique = StringField()
+    funding = StringField()
+    citation = StringField()
+    is_based_on = StringField()  # Related work/datasets
+    same_as = StringField()  # Equivalent datasets
+    schema_org_json = StringField()  # Full Schema.org JSON-LD
+    fair_score = FloatField(default=0.0)
+    schema_org_score = FloatField(default=0.0)
+    structured_description = StringField()  # JSON string of structured description
 
     # Reference to User
     user = ReferenceField('User')

@@ -63,6 +63,18 @@ def create_app(config_class=Config):
     def inject_user():
         return dict(current_user=current_user)
 
+    # Add custom template filters
+    @app.template_filter('from_json')
+    def from_json_filter(json_str):
+        """Convert JSON string to Python object"""
+        if not json_str:
+            return {}
+        try:
+            import json
+            return json.loads(json_str)
+        except (json.JSONDecodeError, TypeError):
+            return {}
+
     # Register error handlers
     register_error_handlers(app)
 

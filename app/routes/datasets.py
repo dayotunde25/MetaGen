@@ -283,6 +283,43 @@ def assess_quality(dataset_id):
     return redirect(url_for('datasets.quality', dataset_id=dataset_id))
 
 
+@datasets_bp.route('/datasets/<dataset_id>/visualizations')
+def visualizations(dataset_id):
+    """View dataset visualizations."""
+    dataset = Dataset.find_by_id(dataset_id)
+
+    if not dataset:
+        abort(404)
+
+    # Get visualizations from dataset
+    visualizations_data = getattr(dataset, 'visualizations', None)
+
+    if not visualizations_data:
+        flash('No visualizations available for this dataset. Please run processing first.', 'info')
+        return redirect(url_for('datasets.view', dataset_id=dataset_id))
+
+    return render_template('datasets/visualizations.html',
+                           dataset=dataset,
+                           visualizations=visualizations_data)
+
+
+@datasets_bp.route('/api/datasets/<dataset_id>/visualizations')
+def api_visualizations(dataset_id):
+    """API endpoint to get dataset visualizations as JSON."""
+    dataset = Dataset.find_by_id(dataset_id)
+
+    if not dataset:
+        return jsonify({'error': 'Dataset not found'}), 404
+
+    # Get visualizations from dataset
+    visualizations_data = getattr(dataset, 'visualizations', None)
+
+    if not visualizations_data:
+        return jsonify({'error': 'No visualizations available'}), 404
+
+    return jsonify(visualizations_data)
+
+
 
 @datasets_bp.route('/datasets/my-datasets')
 @login_required

@@ -1,0 +1,35 @@
+# AIMetaHarvest Dependencies
+# Core Flask and Web Framework
+Flask==2.3.3
+Flask-Login==0.6.3
+Flask-WTF==1.1.1
+WTForms==3.0.1
+Werkzeug==2.3.7
+
+# Database
+mongoengine==0.27.0
+pymongo==4.5.0
+
+# Data Processing
+pandas==2.1.1
+numpy==1.24.3
+openpyxl==3.1.2
+lxml==4.9.3
+
+# Machine Learning and NLP
+scikit-learn==1.3.0
+sentence-transformers==2.2.2
+transformers==4.33.2
+torch==2.0.1
+
+# PDF Generation and Utilities
+reportlab==4.0.4
+Pillow==10.0.0
+
+# Utilities
+python-dotenv==1.0.0
+python-dateutil==2.8.2
+
+# Optional Performance Enhancements (uncomment if needed)
+# faiss-cpu==1.7.4
+# accelerate==0.21.0

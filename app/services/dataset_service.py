@@ -78,38 +78,150 @@ class DatasetService:
     def _process_csv(self, file_path):
         """Process a CSV file to extract schema and sample data"""
         try:
-            # Read a few lines to determine structure
+            # Try to detect delimiter with multiple approaches
+            delimiter = ','  # Default
+
             with open(file_path, 'r', encoding='utf-8') as file:
-                # Try to detect delimiter
-                dialect = csv.Sniffer().sniff(file.read(1024))
-                file.seek(0)
+                sample = file.read(1024)
 
-                # Read with pandas
-                df = pd.read_csv(file_path, sep=dialect.delimiter, nrows=100)
+            # Try common delimiters
+            delimiters = [',', ';', '\t', '|']
+            for test_delimiter in delimiters:
+                if test_delimiter in sample:
+                    delimiter = test_delimiter
+                    break
 
-                # Extract schema
-                schema = {}
-                for col in df.columns:
-                    dtype = str(df[col].dtype)
-                    schema[col] = {
-                        'type': dtype,
-                        'sample_values': df[col].dropna().head(5).tolist()
-                    }
+            # Try sniffer as backup
+            try:
+                with open(file_path, 'r', encoding='utf-8') as file:
+                    dialect = csv.Sniffer().sniff(file.read(1024), delimiters=',;\t|')
+                    delimiter = dialect.delimiter
+            except Exception:
+                pass  # Keep the delimiter we found above
 
-                return {
-                    'format': 'csv',
-                    'columns': list(df.columns),
-                    'schema': schema,
-                    'record_count': len(df),
-                    'sample_data': df.head(10).to_dict(orient='records')
+            # Read sample data with pandas for schema analysis
+            df_sample = pd.read_csv(file_path, sep=delimiter, nrows=100, encoding='utf-8')
+
+            # Count total rows efficiently without loading all data
+            total_rows = self._count_csv_rows(file_path, delimiter)
+
+            # Extract schema
+            schema = {}
+            for col in df_sample.columns:
+                dtype = str(df_sample[col].dtype)
+                schema[col] = {
+                    'type': dtype,
+                    'sample_values': df_sample[col].dropna().head(5).tolist()
                 }
-        except Exception as e:
-            print(f"Error processing CSV: {str(e)}")
+
             return {
                 'format': 'csv',
-                'error': str(e),
-                'summary': 'Failed to process CSV file'
+                'columns': list(df_sample.columns),
+                'schema': schema,
+                'record_count': total_rows,
+                'sample_data': df_sample.head(10).to_dict(orient='records')
             }
+        except Exception as e:
+            print(f"Error processing CSV: {str(e)}")
+            # Try fallback processing with different encodings and delimiters
+            try:
+                return self._fallback_csv_processing(file_path)
+            except Exception as fallback_error:
+                print(f"Fallback CSV processing also failed: {fallback_error}")
+                return {
+                    'format': 'csv',
+                    'error': f"CSV processing failed: {str(e)}. Fallback also failed: {str(fallback_error)}",
+                    'summary': 'Failed to process CSV file',
+                    'record_count': 0,
+                    'schema': {}
+                }
+
+    def _fallback_csv_processing(self, file_path: str):
+        """Fallback CSV processing with multiple attempts."""
+        encodings = ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']
+        delimiters = [',', ';', '\t', '|']
+
+        for encoding in encodings:
+            for delimiter in delimiters:
+                try:
+                    # Try reading with this combination
+                    df = pd.read_csv(file_path, sep=delimiter, encoding=encoding, nrows=50, on_bad_lines='skip')
+
+                    if len(df.columns) > 1 and len(df) > 0:  # Valid data found
+                        # Count total rows with this encoding/delimiter combination
+                        total_rows = self._count_csv_rows_with_encoding(file_path, delimiter, encoding)
+
+                        # Extract basic schema
+                        schema = {}
+                        for col in df.columns:
+                            dtype = str(df[col].dtype)
+                            schema[col] = {
+                                'type': dtype,
+                                'sample_values': df[col].dropna().head(3).tolist()
+                            }
+
+                        return {
+                            'format': 'csv',
+                            'columns': list(df.columns),
+                            'schema': schema,
+                            'record_count': total_rows,
+                            'sample_data': df.head(10).to_dict(orient='records'),
+                            'encoding_used': encoding,
+                            'delimiter_used': delimiter,
+                            'fallback_processing': True
+                        }
+
+                except Exception:
+                    continue  # Try next combination
+
+        # If all combinations fail, return minimal structure
+        raise Exception("Could not process CSV with any encoding/delimiter combination")
+
+    def _count_csv_rows(self, file_path, delimiter=','):
+        """Efficiently count total rows in CSV file without loading all data"""
+        try:
+            row_count = 0
+            with open(file_path, 'r', encoding='utf-8') as file:
+                # Skip header
+                next(file, None)
+                # Count remaining rows
+                for line in file:
+                    if line.strip():  # Skip empty lines
+                        row_count += 1
+            return row_count
+        except Exception as e:
+            print(f"Error counting CSV rows: {e}")
+            # Fallback: try with different encodings
+            encodings = ['latin-1', 'cp1252', 'iso-8859-1']
+            for encoding in encodings:
+                try:
+                    row_count = 0
+                    with open(file_path, 'r', encoding=encoding) as file:
+                        next(file, None)  # Skip header
+                        for line in file:
+                            if line.strip():
+                                row_count += 1
+                    return row_count
+                except Exception:
+                    continue
+            # If all fail, return 0
+            return 0
+
+    def _count_csv_rows_with_encoding(self, file_path, delimiter, encoding):
+        """Count CSV rows with specific encoding and delimiter"""
+        try:
+            row_count = 0
+            with open(file_path, 'r', encoding=encoding) as file:
+                # Skip header
+                next(file, None)
+                # Count remaining rows
+                for line in file:
+                    if line.strip():  # Skip empty lines
+                        row_count += 1
+            return row_count
+        except Exception as e:
+            print(f"Error counting CSV rows with encoding {encoding}: {e}")
+            return 0
 
     def _process_json(self, file_path):
         """Process a JSON file to extract schema and sample data"""

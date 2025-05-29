@@ -13,6 +13,12 @@ from app.services.dataset_service import get_dataset_service
 from app.services.nlp_service import nlp_service
 from app.services.metadata_generator import metadata_service
 from app.services.quality_assessment_service import quality_assessment_service
+from app.services.data_cleaning_service import data_cleaning_service
+from app.services.ai_standards_service import ai_standards_service
+from app.services.persistent_processing_service import persistent_processing_service
+from app.services.description_generator import description_generator
+from app.services.data_visualization_service import data_visualization_service
+from app.services.metadata_completion_service import metadata_completion_service
 
 
 class ProcessingService:
@@ -23,7 +29,26 @@ class ProcessingService:
         self.progress_callbacks = {}  # Store progress update callbacks
 
     def start_processing(self, dataset_id: str, upload_folder: str, progress_callback: Optional[Callable] = None) -> bool:
-        """Start automatic processing for a dataset"""
+        """Start automatic processing for a dataset with enhanced persistence"""
+        try:
+            # Try persistent processing first (survives application restarts)
+            success = persistent_processing_service.start_persistent_processing(
+                dataset_id, upload_folder, progress_callback
+            )
+
+            if success:
+                print(f"✅ Started persistent processing for dataset {dataset_id}")
+                return True
+            else:
+                print(f"⚠️ Persistent processing failed, falling back to standard processing")
+                return self._start_standard_processing(dataset_id, upload_folder, progress_callback)
+
+        except Exception as e:
+            print(f"Error with persistent processing, using fallback: {e}")
+            return self._start_standard_processing(dataset_id, upload_folder, progress_callback)
+
+    def _start_standard_processing(self, dataset_id: str, upload_folder: str, progress_callback: Optional[Callable] = None) -> bool:
+        """Fallback to standard processing if persistent processing fails"""
         try:
             # Check if already processing
             if dataset_id in self.active_processes:
@@ -73,7 +98,7 @@ class ProcessingService:
             return True
 
         except Exception as e:
-            print(f"Error starting processing for dataset {dataset_id}: {e}")
+            print(f"Error starting standard processing for dataset {dataset_id}: {e}")
             return False
 
     def _process_dataset_background(self, dataset_id: str, upload_folder: str):
@@ -90,34 +115,54 @@ class ProcessingService:
                 self._update_progress(dataset_id, 0, 'failed', 'Dataset not found')
                 return
 
-            # Step 1: Process dataset file (20% progress)
-            self._update_progress(dataset_id, 10, 'processing', 'Processing dataset file...')
+            # Step 1: Process dataset file (15% progress)
+            self._update_progress(dataset_id, 5, 'processing', 'Processing dataset file...')
             processed_data = self._process_dataset_file(dataset, dataset_service)
-            self._update_progress(dataset_id, 20, 'processing', 'Dataset file processed')
+            self._update_progress(dataset_id, 15, 'processing', 'Dataset file processed')
 
-            # Step 2: NLP Analysis (40% progress)
-            self._update_progress(dataset_id, 25, 'processing', 'Performing NLP analysis...')
-            nlp_results = self._perform_nlp_analysis(dataset, processed_data)
-            self._update_progress(dataset_id, 40, 'processing', 'NLP analysis completed')
+            # Step 2: Data Cleaning & Restructuring (30% progress)
+            self._update_progress(dataset_id, 20, 'processing', 'Cleaning and restructuring data...')
+            cleaned_data = self._clean_and_restructure_data(processed_data)
+            self._update_progress(dataset_id, 30, 'processing', 'Data cleaning completed')
 
-            # Step 3: Quality Assessment (60% progress)
-            self._update_progress(dataset_id, 45, 'processing', 'Assessing dataset quality...')
-            quality_results = self._assess_quality(dataset, processed_data)
+            # Step 3: NLP Analysis (45% progress)
+            self._update_progress(dataset_id, 35, 'processing', 'Performing NLP analysis...')
+            nlp_results = self._perform_nlp_analysis(dataset, cleaned_data)
+            self._update_progress(dataset_id, 45, 'processing', 'NLP analysis completed')
+
+            # Step 4: Quality Assessment (60% progress)
+            self._update_progress(dataset_id, 50, 'processing', 'Assessing dataset quality...')
+            quality_results = self._assess_quality(dataset, cleaned_data)
             self._update_progress(dataset_id, 60, 'processing', 'Quality assessment completed')
 
-            # Step 4: Metadata Generation (80% progress)
-            self._update_progress(dataset_id, 65, 'processing', 'Generating comprehensive metadata...')
-            metadata_results = self._generate_metadata(dataset, processed_data)
-            self._update_progress(dataset_id, 80, 'processing', 'Metadata generation completed')
+            # Step 5: AI Standards Compliance (65% progress)
+            self._update_progress(dataset_id, 60, 'processing', 'Assessing AI standards compliance...')
+            ai_compliance = self._assess_ai_standards(dataset, cleaned_data)
+            self._update_progress(dataset_id, 65, 'processing', 'AI standards assessment completed')
 
-            # Step 5: Save Results (90% progress)
-            self._update_progress(dataset_id, 85, 'processing', 'Saving processing results...')
-            self._save_processing_results(dataset, processed_data, nlp_results, quality_results, metadata_results)
-            self._update_progress(dataset_id, 90, 'processing', 'Results saved')
+            # Step 6: Generate Description (65% progress)
+            self._update_progress(dataset_id, 60, 'processing', 'Generating intelligent description...')
+            description_results = self._generate_description(dataset, cleaned_data, nlp_results, quality_results)
+            self._update_progress(dataset_id, 65, 'processing', 'Description generation completed')
 
-            # Step 6: Generate Visualizations (100% progress)
-            self._update_progress(dataset_id, 95, 'processing', 'Generating visualizations...')
-            self._generate_visualizations(dataset, processed_data, quality_results)
+            # Step 7: Complete Metadata (75% progress)
+            self._update_progress(dataset_id, 70, 'processing', 'Completing and enhancing metadata...')
+            completion_results = self._complete_metadata(dataset, cleaned_data, quality_results)
+            self._update_progress(dataset_id, 75, 'processing', 'Metadata completion finished')
+
+            # Step 8: Generate Metadata (85% progress)
+            self._update_progress(dataset_id, 80, 'processing', 'Generating comprehensive metadata...')
+            metadata_results = self._generate_metadata(dataset, cleaned_data)
+            self._update_progress(dataset_id, 85, 'processing', 'Metadata generation completed')
+
+            # Step 9: Save Results (95% progress)
+            self._update_progress(dataset_id, 90, 'processing', 'Saving processing results...')
+            self._save_processing_results(dataset, cleaned_data, nlp_results, quality_results, metadata_results, ai_compliance)
+            self._update_progress(dataset_id, 95, 'processing', 'Results saved')
+
+            # Step 10: Generate Visualizations (100% progress)
+            self._update_progress(dataset_id, 98, 'processing', 'Generating visualizations...')
+            self._generate_visualizations(dataset, cleaned_data, quality_results)
 
             # Complete processing
             self._update_progress(dataset_id, 100, 'completed', 'Processing completed successfully')
@@ -228,6 +273,155 @@ class ProcessingService:
 
         return ' '.join(text_parts)
 
+    def _clean_and_restructure_data(self, processed_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Clean and restructure data for better quality and standards compliance"""
+        try:
+            if not processed_data:
+                return processed_data
+
+            # Use the data cleaning service
+            cleaned_data = data_cleaning_service.clean_dataset(processed_data)
+
+            return cleaned_data
+        except Exception as e:
+            print(f"Error in data cleaning: {e}")
+            return processed_data
+
+    def _assess_ai_standards(self, dataset, processed_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Assess AI standards compliance"""
+        try:
+            # Use the AI standards service
+            ai_compliance = ai_standards_service.assess_ai_compliance(dataset, processed_data)
+
+            return ai_compliance
+        except Exception as e:
+            print(f"Error in AI standards assessment: {e}")
+            return {'error': str(e)}
+
+    def _generate_description(self, dataset, processed_data: Dict[str, Any],
+                            nlp_results: Dict[str, Any] = None,
+                            quality_results: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Generate intelligent dataset description"""
+        try:
+            # Use the description generator service
+            generated_description = description_generator.generate_description(
+                dataset, processed_data, nlp_results, quality_results
+            )
+
+            # Handle structured description response
+            if isinstance(generated_description, dict):
+                # New structured format
+                plain_text = generated_description.get('plain_text', '')
+                existing_desc = dataset.description or ""
+
+                # Update if no existing description or existing is very short
+                if not existing_desc or len(existing_desc.strip()) < 100:
+                    # Store both structured and plain text versions
+                    import json
+                    update_data = {
+                        'description': plain_text,
+                        'structured_description': json.dumps(generated_description)
+                    }
+                    dataset.update(**update_data)
+                    print(f"✅ Updated dataset with structured description for {dataset.id}")
+                elif "[Auto-generated description" not in existing_desc and "[Enhanced with auto-generated" not in existing_desc:
+                    # Enhance existing description if it hasn't been auto-enhanced before
+                    enhanced_description = description_generator._enhance_existing_description(
+                        existing_desc, dataset, processed_data, nlp_results, quality_results
+                    )
+                    if enhanced_description != existing_desc:
+                        dataset.update(description=enhanced_description)
+                        print(f"✅ Enhanced dataset description for {dataset.id}")
+
+                return {
+                    'structured_description': generated_description,
+                    'description_length': len(plain_text) if plain_text else 0,
+                    'updated_dataset': True
+                }
+            else:
+                # Legacy string format (backward compatibility)
+                if generated_description and len(generated_description.strip()) > 50:
+                    existing_desc = dataset.description or ""
+
+                    if not existing_desc or len(existing_desc.strip()) < 100:
+                        dataset.update(description=generated_description)
+                        print(f"✅ Updated dataset description for {dataset.id}")
+
+                return {
+                    'generated_description': generated_description,
+                    'description_length': len(generated_description) if generated_description else 0,
+                    'updated_dataset': True
+                }
+
+        except Exception as e:
+            print(f"Error in description generation: {e}")
+            return {'error': str(e)}
+
+    def _complete_metadata(self, dataset, processed_data: Dict[str, Any],
+                          quality_results: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Complete and enhance dataset metadata automatically."""
+        try:
+            # Get user information for metadata completion
+            user_info = {}
+            if hasattr(dataset, 'user') and dataset.user:
+                user_info = {
+                    'username': getattr(dataset.user, 'username', 'Unknown User'),
+                    'organization': getattr(dataset.user, 'organization', None)
+                }
+
+            # Complete metadata using the completion service
+            metadata_enhancements = metadata_completion_service.complete_dataset_metadata(
+                dataset, processed_data, quality_results, user_info
+            )
+
+            # Apply enhancements to dataset
+            if metadata_enhancements:
+                # Filter and convert complex objects for database storage
+                filtered_enhancements = {}
+                for key, value in metadata_enhancements.items():
+                    if value is not None and not callable(value):
+                        # Handle Schema.org metadata specially
+                        if key == 'schema_org_metadata':
+                            import json
+                            filtered_enhancements['schema_org_json'] = json.dumps(value)
+                            continue
+
+                        # Convert datetime objects to ISO strings for storage
+                        if hasattr(value, 'isoformat'):
+                            filtered_enhancements[key] = value.isoformat()
+                        # Convert lists and dicts to JSON strings for string fields
+                        elif isinstance(value, (list, dict)):
+                            import json
+                            filtered_enhancements[key] = json.dumps(value)
+                        # Convert other complex objects to strings
+                        elif not isinstance(value, (str, int, float, bool)):
+                            filtered_enhancements[key] = str(value)
+                        else:
+                            filtered_enhancements[key] = value
+
+                if filtered_enhancements:
+                    try:
+                        dataset.update(**filtered_enhancements)
+                        print(f"✅ Applied {len(filtered_enhancements)} metadata enhancements to dataset {dataset.id}")
+                    except Exception as update_error:
+                        print(f"⚠️ Error updating dataset with enhancements: {update_error}")
+                        # Try updating fields individually to identify problematic ones
+                        for key, value in filtered_enhancements.items():
+                            try:
+                                dataset.update(**{key: value})
+                            except Exception as field_error:
+                                print(f"⚠️ Could not update field {key}: {field_error}")
+
+            return {
+                'enhancements_applied': len(metadata_enhancements) if metadata_enhancements else 0,
+                'enhanced_fields': list(metadata_enhancements.keys()) if metadata_enhancements else [],
+                'metadata_completed': True
+            }
+
+        except Exception as e:
+            print(f"❌ Error completing metadata: {e}")
+            return {'error': str(e)}
+
     def _assess_quality(self, dataset, processed_data: Dict[str, Any]) -> Dict[str, Any]:
         """Assess dataset quality"""
         try:
@@ -274,7 +468,7 @@ class ProcessingService:
             print(f"Error generating metadata: {e}")
             return {'error': str(e)}
 
-    def _save_processing_results(self, dataset, processed_data, nlp_results, quality_results, metadata_results):
+    def _save_processing_results(self, dataset, processed_data, nlp_results, quality_results, metadata_results, ai_compliance=None):
         """Save all processing results to database"""
         try:
             # Update dataset with processed information
@@ -283,12 +477,22 @@ class ProcessingService:
             if processed_data and 'record_count' in processed_data:
                 update_data['record_count'] = processed_data['record_count']
 
+                # Add cleaning statistics if available
+                if 'cleaning_stats' in processed_data:
+                    update_data['cleaning_stats'] = processed_data['cleaning_stats']
+                if 'transformation_log' in processed_data:
+                    update_data['transformation_log'] = processed_data['transformation_log']
+
             # Add NLP-suggested tags if dataset doesn't have tags
             if not dataset.tags and nlp_results and 'suggested_tags' in nlp_results:
                 suggested_tags = nlp_results['suggested_tags'][:5]  # Top 5 suggestions
                 if suggested_tags:
                     # Convert list to comma-separated string for StringField
                     update_data['tags'] = ', '.join(suggested_tags)
+
+            # Add AI compliance data
+            if ai_compliance:
+                update_data['ai_compliance'] = ai_compliance
 
             if update_data:
                 dataset.update(**update_data)
@@ -316,22 +520,32 @@ class ProcessingService:
             print(f"Error saving processing results: {e}")
 
     def _generate_visualizations(self, dataset, processed_data, quality_results):
-        """Generate visualizations for the dataset"""
-        # This is a placeholder for visualization generation
-        # In a real implementation, you might generate charts, graphs, etc.
+        """Generate comprehensive visualizations for the dataset"""
         try:
-            visualizations = {
-                'quality_chart': self._create_quality_chart_data(quality_results),
-                'data_overview': self._create_data_overview(processed_data),
-                'generated_at': datetime.utcnow().isoformat()
-            }
+            # Get AI compliance results if available
+            ai_compliance = getattr(dataset, 'ai_compliance', None)
 
-            # Save visualization data (could be stored in database or files)
-            # For now, we'll just log that visualizations were generated
-            print(f"Generated visualizations for dataset {dataset.id}")
+            # Generate comprehensive visualizations using the new service
+            visualizations = data_visualization_service.generate_comprehensive_visualizations(
+                dataset, processed_data, quality_results, ai_compliance
+            )
+
+            # Save visualizations to dataset
+            if visualizations and 'charts' in visualizations:
+                dataset.update(visualizations=visualizations)
+                print(f"✅ Generated {len(visualizations['charts'])} visualizations for dataset {dataset.id}")
+            else:
+                print(f"⚠️ No visualizations generated for dataset {dataset.id}")
 
         except Exception as e:
-            print(f"Error generating visualizations: {e}")
+            print(f"❌ Error generating visualizations: {e}")
+            # Fallback to basic visualization
+            try:
+                fallback_viz = data_visualization_service._generate_fallback_visualizations(dataset, processed_data)
+                dataset.update(visualizations=fallback_viz)
+                print(f"✅ Generated fallback visualizations for dataset {dataset.id}")
+            except Exception as fallback_error:
+                print(f"❌ Fallback visualization also failed: {fallback_error}")
 
     def _create_quality_chart_data(self, quality_results) -> Dict[str, Any]:
         """Create data for quality visualization charts"""
