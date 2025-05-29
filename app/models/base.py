@@ -2,12 +2,7 @@
 Base model and database setup.
 """
 
-from flask_sqlalchemy import SQLAlchemy
+import mongoengine
 
-db = SQLAlchemy()
-
-class Base(db.Model):
-    """
-    Base model class for SQLAlchemy models.
-    """
-    __abstract__ = True
+# We'll initialize the connection in the Flask app
+db = mongoengine

@@ -6,11 +6,11 @@
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="mb-0">Dashboard</h1>
-        <a href="{{ url_for('datasets.add_dataset') }}" class="btn btn-primary">
+        <a href="{{ url_for('datasets.create') }}" class="btn btn-primary">
             <i class="fas fa-plus me-2"></i>Add New Dataset
         </a>
     </div>
-    
+
     <!-- Feature Highlight -->
     <div class="alert alert-info mb-4">
         <div class="d-flex">
@@ -19,7 +19,7 @@
             </div>
             <div>
                 <h5 class="alert-heading">New Feature: Dataset Health Reports</h5>
-                <p>Generate comprehensive health reports for your datasets! These reports provide detailed quality metrics, FAIR compliance assessment, and recommendations for improvement. <a href="#" class="alert-link">Learn more</a></p>
+                <p>Generate comprehensive health reports for your datasets! These reports provide detailed quality metrics, FAIR compliance assessment, and recommendations for improvement. <a href="{{ url_for('reports.about') }}" class="alert-link">Learn more</a></p>
                 <p class="mb-0"><small>Available from the dataset quality page or dataset detail page when quality assessment is complete.</small></p>
             </div>
         </div>
@@ -31,7 +31,7 @@
             <div class="stat-card">
                 <div class="d-flex justify-content-between">
                     <div>
-                        <p class="stat-title">Total Datasets</p>
+                        <p class="stat-title">My Datasets</p>
                         <h2 class="stat-value">{{ stats.totalDatasets }}</h2>
                     </div>
                     <div class="stat-icon text-primary">
@@ -44,7 +44,7 @@
             <div class="stat-card">
                 <div class="d-flex justify-content-between">
                     <div>
-                        <p class="stat-title">Processed</p>
+                        <p class="stat-title">My Processed</p>
                         <h2 class="stat-value">{{ stats.processedDatasets }}</h2>
                     </div>
                     <div class="stat-icon text-success">
@@ -57,7 +57,7 @@
             <div class="stat-card">
                 <div class="d-flex justify-content-between">
                     <div>
-                        <p class="stat-title">FAIR Compliant</p>
+                        <p class="stat-title">My FAIR Compliant</p>
                         <h2 class="stat-value">{{ stats.fairCompliantDatasets }}</h2>
                     </div>
                     <div class="stat-icon text-info">
@@ -70,7 +70,7 @@
             <div class="stat-card">
                 <div class="d-flex justify-content-between">
                     <div>
-                        <p class="stat-title">In Queue</p>
+                        <p class="stat-title">My Queue</p>
                         <h2 class="stat-value">{{ stats.queuedDatasets }}</h2>
                     </div>
                     <div class="stat-icon text-warning">
@@ -81,10 +81,10 @@
         </div>
     </div>
 
-    <!-- Recent Datasets -->
+    <!-- Recent Datasets (User's Own) -->
     <div class="card mb-4">
         <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-table me-2"></i>Recent Datasets</h5>
+            <h5 class="mb-0"><i class="fas fa-table me-2"></i>My Recent Datasets</h5>
         </div>
         <div class="card-body">
             {% if recent_datasets %}
@@ -104,7 +104,7 @@
                         {% for dataset in recent_datasets %}
                         <tr>
                             <td>
-                                <a href="{{ url_for('datasets.view_dataset', dataset_id=dataset.id) }}" class="text-decoration-none text-primary fw-medium">
+                                <a href="{{ url_for('datasets.view', dataset_id=dataset.id) }}" class="text-decoration-none text-primary fw-medium">
                                     {{ dataset.title }}
                                 </a>
                             </td>
@@ -132,16 +132,19 @@
                             <td>{{ dataset.created_at.strftime('%b %d, %Y') }}</td>
                             <td>
                                 <div class="btn-group">
-                                    <a href="{{ url_for('datasets.view_dataset', dataset_id=dataset.id) }}" class="btn btn-sm btn-outline-primary">
+                                    <a href="{{ url_for('datasets.view', dataset_id=dataset.id) }}" class="btn btn-sm btn-outline-primary">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    <a href="{{ url_for('datasets.edit_dataset', dataset_id=dataset.id) }}" class="btn btn-sm btn-outline-secondary">
+                                    <a href="{{ url_for('datasets.edit', dataset_id=dataset.id) }}" class="btn btn-sm btn-outline-secondary">
                                         <i class="fas fa-edit"></i>
                                     </a>
                                     {% if dataset.status == 'pending' %}
-                                    <a href="{{ url_for('datasets.process_dataset', dataset_id=dataset.id) }}" class="btn btn-sm btn-outline-success">
-                                        <i class="fas fa-play"></i>
-                                    </a>
+                                    <form method="POST" action="{{ url_for('datasets.start_processing', dataset_id=dataset.id) }}" style="display: inline;">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <button type="submit" class="btn btn-sm btn-outline-success" title="Start Processing">
+                                            <i class="fas fa-play"></i>
+                                        </button>
+                                    </form>
                                     {% endif %}
                                 </div>
                             </td>
@@ -157,14 +160,83 @@
                 </div>
                 <h5>No datasets yet</h5>
                 <p class="text-muted">Start by adding your first dataset</p>
-                <a href="{{ url_for('datasets.add_dataset') }}" class="btn btn-primary">
+                <a href="{{ url_for('datasets.create') }}" class="btn btn-primary">
                     <i class="fas fa-plus me-2"></i>Add New Dataset
                 </a>
             </div>
             {% endif %}
         </div>
         <div class="card-footer text-center">
-            <a href="{{ url_for('datasets.list_datasets') }}" class="btn btn-link">View All Datasets</a>
+            <a href="{{ url_for('datasets.list') }}" class="btn btn-link">View All My Datasets</a>
+        </div>
+    </div>
+
+    <!-- Featured Datasets -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-star me-2"></i>Featured Datasets</h5>
+                <small class="text-muted">High-quality datasets from the community</small>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if featured_datasets %}
+            <div class="row">
+                {% for dataset in featured_datasets %}
+                <div class="col-lg-4 col-md-6 mb-3">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="card-title mb-0">
+                                    <a href="{{ url_for('datasets.view', dataset_id=dataset.id) }}" class="text-decoration-none">
+                                        {{ dataset.title[:50] }}{% if dataset.title|length > 50 %}...{% endif %}
+                                    </a>
+                                </h6>
+                                <span class="badge bg-success ms-2">
+                                    <i class="fas fa-award"></i>
+                                </span>
+                            </div>
+                            <p class="card-text text-muted small mb-2">
+                                {{ dataset.description[:80] if dataset.description else 'No description available' }}{% if dataset.description and dataset.description|length > 80 %}...{% endif %}
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    {% if dataset.category %}
+                                    <span class="badge bg-light text-dark">{{ dataset.category }}</span>
+                                    {% endif %}
+                                    {% if dataset.data_type %}
+                                    <span class="badge bg-light text-dark">{{ dataset.data_type }}</span>
+                                    {% endif %}
+                                </div>
+                                <small class="text-muted">{{ dataset.created_at.strftime('%b %d') }}</small>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent border-0 pt-0">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-user"></i> {{ dataset.user.username if dataset.user else 'Unknown' }}
+                                </small>
+                                <a href="{{ url_for('datasets.view', dataset_id=dataset.id) }}" class="btn btn-sm btn-outline-primary">
+                                    View <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <div class="mb-3">
+                    <i class="fas fa-star fa-3x text-muted"></i>
+                </div>
+                <h5>No featured datasets yet</h5>
+                <p class="text-muted">Featured datasets will appear here as the community uploads high-quality, FAIR-compliant datasets</p>
+            </div>
+            {% endif %}
+        </div>
+        <div class="card-footer text-center">
+            <a href="{{ url_for('main.search') }}" class="btn btn-link">Explore All Datasets</a>
         </div>
     </div>
 
@@ -181,14 +253,14 @@
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <div>
                             <h6 class="mb-0">{{ item.dataset.title }}</h6>
-                            <small class="text-muted">Added to queue: {{ item.created_at.strftime('%b %d, %Y %H:%M') }}</small>
+                            <small class="text-muted">Added to queue: {{ item.queued_at.strftime('%b %d, %Y %H:%M') }}</small>
                         </div>
                         <span class="badge bg-{{ 'warning' if item.status == 'processing' else 'info' }}">
                             {{ item.status.title() }}
                         </span>
                     </div>
                     <div class="progress">
-                        <div class="progress-bar {{ 'progress-bar-striped progress-bar-animated' if item.status == 'processing' else '' }}" 
+                        <div class="progress-bar {{ 'progress-bar-striped progress-bar-animated' if item.status == 'processing' else '' }}"
                              role="progressbar" style="width: {{ item.progress or 0 }}%">
                             {{ item.progress or 0 }}%
                         </div>

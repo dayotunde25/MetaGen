@@ -3,7 +3,7 @@
 {% block title %}Dataset - {{ dataset.title }}{% endblock %}
 
 {% block content %}
-<div class="container my-4">
+<div class="container my-4" data-dataset-id="{{ dataset.id }}">
     <div class="row mb-4">
         <div class="col">
             <nav aria-label="breadcrumb">
@@ -18,12 +18,45 @@
         </div>
     </div>
 
+    <!-- Real-time Processing Status Alert -->
+    {% if dataset.status == 'processing' %}
+    <div class="row mb-4">
+        <div class="col">
+            <div class="alert alert-info" role="alert">
+                <div class="d-flex align-items-center">
+                    <div class="spinner-border spinner-border-sm me-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="alert-heading mb-1">Processing in Progress</h6>
+                        <p class="mb-2" id="processing-message">Dataset is being processed automatically...</p>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-info"
+                                 role="progressbar"
+                                 id="processing-progress"
+                                 style="width: 0%"
+                                 aria-valuenow="0"
+                                 aria-valuemin="0"
+                                 aria-valuemax="100">
+                                <span id="progress-percent">0%</span>
+                            </div>
+                        </div>
+                        <small class="text-muted mt-1 d-block">
+                            Status: <span id="processing-status">Starting...</span>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <div class="row mb-4">
         <div class="col-md-8">
             <div class="card shadow-sm h-100">
                 <div class="card-header bg-light d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Details</h5>
-                    {% if current_user.is_authenticated and (not dataset.user_id or dataset.user_id == current_user.id or current_user.is_admin) %}
+                    {% if current_user.is_authenticated and (not dataset.user or dataset.user.id == current_user.id or current_user.is_admin) %}
                     <div>
                         <a href="{{ url_for('datasets.edit', dataset_id=dataset.id) }}" class="btn btn-sm btn-outline-primary">
                             <i class="fas fa-edit"></i> Edit
@@ -55,37 +88,37 @@
                             <h5>Description</h5>
                             <p>{{ dataset.description or 'No description provided' }}</p>
                         </div>
-                        
+
                         <div class="col-md-6 mb-3">
                             <h6>Source</h6>
                             <p class="mb-0">{{ dataset.source }}</p>
                         </div>
-                        
+
                         <div class="col-md-6 mb-3">
                             <h6>Category</h6>
                             <p class="mb-0">{{ dataset.category or 'Uncategorized' }}</p>
                         </div>
-                        
+
                         <div class="col-md-6 mb-3">
                             <h6>Data Type</h6>
                             <p class="mb-0">{{ dataset.data_type or 'Not specified' }}</p>
                         </div>
-                        
+
                         <div class="col-md-6 mb-3">
                             <h6>Format</h6>
                             <p class="mb-0">{{ dataset.format or 'Unknown' }}</p>
                         </div>
-                        
+
                         <div class="col-md-6 mb-3">
                             <h6>Size</h6>
                             <p class="mb-0">{{ dataset.size or 'Unknown' }}</p>
                         </div>
-                        
+
                         <div class="col-md-6 mb-3">
                             <h6>Record Count</h6>
                             <p class="mb-0">{{ dataset.record_count or 'Unknown' }}</p>
                         </div>
-                        
+
                         <div class="col-md-12 mb-3">
                             <h6>Source URL</h6>
                             {% if dataset.source_url %}
@@ -97,7 +130,7 @@
                             <p class="mb-0">Not provided</p>
                             {% endif %}
                         </div>
-                        
+
                         <div class="col-md-12">
                             <h6>Tags</h6>
                             <div>
@@ -114,7 +147,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-md-4">
             <div class="row">
                 <!-- Quality Score Card -->
@@ -125,7 +158,7 @@
                         </div>
                         <div class="card-body text-center">
                             {% if quality %}
-                            <div class="quality-score-circle 
+                            <div class="quality-score-circle
                                 {% if quality.quality_score >= 80 %}bg-success{% elif quality.quality_score >= 60 %}bg-info{% elif quality.quality_score >= 40 %}bg-warning{% else %}bg-danger{% endif %}">
                                 <h2 class="mb-0">{{ quality.quality_score|round|int }}</h2>
                                 <p class="mb-0 small">out of 100</p>
@@ -136,7 +169,7 @@
                                 {% else %}
                                 <span class="badge bg-warning">Not FAIR Compliant</span>
                                 {% endif %}
-                                
+
                                 {% if quality.schema_org_compliant %}
                                 <span class="badge bg-success">Schema.org Compliant</span>
                                 {% else %}
@@ -162,7 +195,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Status Card -->
                 <div class="col-12 mb-4">
                     <div class="card shadow-sm">
@@ -172,7 +205,7 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <span>Processing Status:</span>
-                                <span class="badge 
+                                <span class="badge
                                     {% if dataset.status == 'completed' %}bg-success
                                     {% elif dataset.status == 'processing' %}bg-info
                                     {% elif dataset.status == 'pending' %}bg-warning
@@ -181,7 +214,7 @@
                                     {{ dataset.status|capitalize }}
                                 </span>
                             </div>
-                            
+
                             {% if processing and processing.status == 'processing' %}
                             <div class="mb-3">
                                 <label class="form-label d-flex justify-content-between mb-1">
@@ -198,19 +231,27 @@
                                 {% endif %}
                             </div>
                             {% endif %}
-                            
+
                             {% if dataset.status != 'processing' and dataset.status != 'pending' %}
-                            <form action="{{ url_for('datasets.process_dataset', dataset_id=dataset.id) }}" method="post" class="mt-3">
+                            <form action="{{ url_for('datasets.start_processing', dataset_id=dataset.id) }}" method="post" class="mt-3">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                 <button type="submit" class="btn btn-outline-primary w-100">
                                     <i class="fas fa-sync-alt me-2"></i>
-                                    Process Dataset
+                                    Start Processing
                                 </button>
                             </form>
+                            {% elif dataset.status == 'processing' %}
+                            <div class="mt-3">
+                                <button type="button" class="btn btn-outline-info w-100" onclick="window.progressTracker?.checkProgress()">
+                                    <i class="fas fa-refresh me-2"></i>
+                                    Refresh Progress
+                                </button>
+                            </div>
                             {% endif %}
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Metadata Card -->
                 <div class="col-12">
                     <div class="card shadow-sm">
@@ -227,7 +268,7 @@
                                 Schema.org metadata not available
                                 {% endif %}
                             </p>
-                            
+
                             <div class="d-grid">
                                 <a href="{{ url_for('datasets.metadata', dataset_id=dataset.id) }}" class="btn btn-primary">
                                     <i class="fas fa-file-code me-2"></i>
@@ -256,6 +297,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <form action="{{ url_for('datasets.delete', dataset_id=dataset.id) }}" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <button type="submit" class="btn btn-danger">Delete</button>
                 </form>
             </div>
@@ -279,4 +321,9 @@
         margin: 0 auto;
     }
 </style>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='js/progress-tracker.js') }}"></script>
 {% endblock %}

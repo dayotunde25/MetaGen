@@ -4,19 +4,17 @@ User model and authentication functionality.
 
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
-from sqlalchemy import Column, Integer, String, DateTime, Boolean
-from sqlalchemy.orm import relationship
+from mongoengine import Document, StringField, BooleanField, DateTimeField
 from datetime import datetime
 
-from app.models.base import Base, db
+# No need to import db for MongoEngine
 
 
-class User(Base, UserMixin):
+class User(Document, UserMixin):
     """
     User model for authentication and user management.
-    
+
     Attributes:
-        id: Unique identifier
         username: Username for login
         email: Email address
         password_hash: Hashed password
@@ -24,109 +22,146 @@ class User(Base, UserMixin):
         created_at: When the user was created
         last_login: When the user last logged in
     """
-    
-    __tablename__ = 'users'
-    
-    id = Column(Integer, primary_key=True)
-    username = Column(String(64), unique=True, nullable=False, index=True)
-    email = Column(String(120), unique=True, nullable=False, index=True)
-    password_hash = Column(String(256), nullable=False)
-    is_admin = Column(Boolean, default=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    last_login = Column(DateTime, nullable=True)
-    
-    # Relationships
-    datasets = relationship('Dataset', back_populates='user')
-    
+
+    username = StringField(max_length=64, required=True, unique=True)
+    email = StringField(max_length=120, required=True, unique=True)
+    password_hash = StringField(max_length=256, required=True)
+    is_admin = BooleanField(default=False)
+    created_at = DateTimeField(default=datetime.utcnow)
+    last_login = DateTimeField()
+
+    meta = {
+        'collection': 'users',
+        'indexes': ['username', 'email']
+    }
+
     @property
     def password(self):
         """
         Password getter - raises AttributeError.
         """
         raise AttributeError('Password is not a readable attribute')
-    
+
     @password.setter
     def password(self, password):
         """
         Set password hash.
-        
+
         Args:
             password: Plain text password
         """
         self.password_hash = generate_password_hash(password)
-    
+
     def check_password(self, password):
         """
         Check if password matches hash.
-        
+
         Args:
             password: Plain text password to check
-            
+
         Returns:
             True if password matches
         """
         return check_password_hash(self.password_hash, password)
-    
+
+    def get_id(self):
+        """Return the user ID as a string for Flask-Login."""
+        return str(self.id)
+
     def update_last_login(self):
         """Update last login timestamp."""
         self.last_login = datetime.utcnow()
-        db.session.commit()
-    
+        self.save()
+
     @classmethod
     def find_by_username(cls, username):
         """
         Find user by username.
-        
+
         Args:
             username: Username to search for
-            
+
         Returns:
             User or None
         """
-        return db.session.query(cls).filter_by(username=username).first()
-    
+        try:
+            return cls.objects(username=username).first()
+        except cls.DoesNotExist:
+            return None
+
     @classmethod
     def find_by_email(cls, email):
         """
         Find user by email.
-        
+
         Args:
             email: Email to search for
-            
+
         Returns:
             User or None
         """
-        return db.session.query(cls).filter_by(email=email).first()
-    
+        try:
+            return cls.objects(email=email).first()
+        except cls.DoesNotExist:
+            return None
+
     @classmethod
     def create(cls, username, email, password, is_admin=False):
         """
         Create a new user.
-        
+
         Args:
             username: Username
             email: Email address
             password: Plain text password
             is_admin: Whether user is admin
-            
+
         Returns:
             New User instance
         """
         user = cls(username=username, email=email, is_admin=is_admin)
         user.password = password
-        db.session.add(user)
-        db.session.commit()
+        user.save()
         return user
-    
+
+    def verify_password(self, password):
+        """
+        Verify password against stored hash.
+
+        Args:
+            password: Plain text password to verify
+
+        Returns:
+            True if password matches, False otherwise
+        """
+        return check_password_hash(self.password_hash, password)
+
+    # Flask-Login required methods
+    def is_authenticated(self):
+        """Return True if user is authenticated."""
+        return True
+
+    def is_active(self):
+        """Return True if user is active."""
+        return True
+
+    def is_anonymous(self):
+        """Return False as this is not an anonymous user."""
+        return False
+
+    def get_id(self):
+        """Return user ID as string for Flask-Login."""
+        return str(self.id)
+
     def to_dict(self):
         """
         Convert to dictionary.
-        
+
         Returns:
             Dictionary representation (without password)
         """
         return {
-            'id': self.id,
+            'id': str(self.id),
             'username': self.username,
             'email': self.email,
             'is_admin': self.is_admin,

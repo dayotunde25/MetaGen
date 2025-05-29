@@ -34,16 +34,20 @@
     </div>
 
     <!-- Search Results -->
-    {% if search_performed %}
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">
-                <i class="fas fa-list me-2"></i> Search Results
-                {% if results %}
-                <small class="text-muted">({{ results|length }} found)</small>
+                <i class="fas fa-list me-2"></i>
+                {% if request.args.get('query') or request.args.get('category') or request.args.get('data_type') %}
+                    Search Results
+                {% else %}
+                    All Datasets
+                {% endif %}
+                {% if total_results %}
+                <small class="text-muted">({{ total_results }} total, showing {{ results|length }})</small>
                 {% endif %}
             </h5>
-            
+
             {% if results %}
             <div class="dropdown">
                 <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
@@ -74,68 +78,61 @@
             </div>
             {% endif %}
         </div>
-        
+
         <div class="card-body">
             {% if results %}
-                {% if timing %}
-                <div class="mb-3 text-muted small">
-                    <i class="fas fa-clock me-1"></i> Search completed in {{ timing.total|round(3) }} seconds
-                </div>
-                {% endif %}
-                
                 <div class="list-group">
-                    {% for result in results %}
+                    {% for dataset in results %}
                     <div class="search-result mb-3">
                         <div class="d-flex align-items-start">
-                            {% if result.score is defined %}
-                            <div class="me-3 text-center">
-                                <div class="quality-score {{ 'quality-high' if result.score >= 80 else ('quality-medium' if result.score >= 50 else 'quality-low') }}" style="width: 50px; height: 50px; font-size: 1.25rem;">
-                                    {{ result.score|int }}
-                                </div>
-                                <div class="small text-muted mt-1">match</div>
-                            </div>
-                            {% endif %}
                             <div class="flex-grow-1">
                                 <h5 class="mb-1">
-                                    <a href="{{ url_for('datasets.view_dataset', dataset_id=result.dataset.id) }}" class="text-decoration-none">
-                                        {{ result.dataset.title }}
+                                    <a href="{{ url_for('datasets.view', dataset_id=dataset.id) }}" class="text-decoration-none">
+                                        {{ dataset.title }}
                                     </a>
                                 </h5>
-                                <p class="mb-2">{{ result.dataset.description|truncate(200) }}</p>
+                                <p class="mb-2">{{ dataset.description[:200] if dataset.description else 'No description available' }}{% if dataset.description and dataset.description|length > 200 %}...{% endif %}</p>
                                 <div class="d-flex flex-wrap align-items-center mb-2">
-                                    {% if result.dataset.category %}
-                                    <span class="badge bg-secondary me-2 mb-1">{{ result.dataset.category }}</span>
+                                    {% if dataset.category %}
+                                    <span class="badge bg-secondary me-2 mb-1">{{ dataset.category }}</span>
                                     {% endif %}
-                                    
-                                    {% if result.dataset.data_type %}
-                                    <span class="badge bg-info me-2 mb-1">{{ result.dataset.data_type }}</span>
+
+                                    {% if dataset.data_type %}
+                                    <span class="badge bg-info me-2 mb-1">{{ dataset.data_type }}</span>
                                     {% endif %}
-                                    
-                                    {% if result.dataset.format %}
-                                    <span class="badge bg-light text-dark me-2 mb-1">{{ result.dataset.format }}</span>
+
+                                    {% if dataset.format %}
+                                    <span class="badge bg-light text-dark me-2 mb-1">{{ dataset.format }}</span>
                                     {% endif %}
-                                    
+
                                     <span class="badge bg-light text-dark me-2 mb-1">
-                                        <i class="fas fa-calendar-alt me-1"></i> {{ result.dataset.created_at.strftime('%b %d, %Y') }}
+                                        <i class="fas fa-calendar-alt me-1"></i> {{ dataset.created_at.strftime('%b %d, %Y') }}
                                     </span>
-                                    
-                                    {% if result.dataset.source %}
+
+                                    {% if dataset.source %}
+                                    <span class="badge bg-light text-dark me-2 mb-1">
+                                        <i class="fas fa-database me-1"></i> {{ dataset.source }}
+                                    </span>
+                                    {% endif %}
+
+                                    {% if dataset.user %}
                                     <span class="badge bg-light text-dark mb-1">
-                                        <i class="fas fa-database me-1"></i> {{ result.dataset.source }}
+                                        <i class="fas fa-user me-1"></i> {{ dataset.user.username }}
                                     </span>
                                     {% endif %}
                                 </div>
-                                
-                                {% if result.dataset.tags %}
+
+                                {% if dataset.tags %}
                                 <div>
-                                    {% for tag in result.dataset.tags_list() %}
-                                    <a href="{{ url_for('main.search', query=tag) }}" class="badge bg-primary me-1 mb-1 text-decoration-none">{{ tag }}</a>
+                                    {% set tags = dataset.tags.split(',') if dataset.tags else [] %}
+                                    {% for tag in tags %}
+                                    <a href="{{ url_for('main.search', query=tag.strip()) }}" class="badge bg-primary me-1 mb-1 text-decoration-none">{{ tag.strip() }}</a>
                                     {% endfor %}
                                 </div>
                                 {% endif %}
                             </div>
                             <div class="ms-3">
-                                <a href="{{ url_for('datasets.view_dataset', dataset_id=result.dataset.id) }}" class="btn btn-sm btn-outline-primary">
+                                <a href="{{ url_for('datasets.view', dataset_id=dataset.id) }}" class="btn btn-sm btn-outline-primary">
                                     <i class="fas fa-eye"></i>
                                 </a>
                             </div>
@@ -143,14 +140,14 @@
                     </div>
                     {% endfor %}
                 </div>
-                
+
                 <!-- Pagination -->
-                {% if pagination and pagination.pages > 1 %}
+                {% if pagination and pagination.total_pages > 1 %}
                 <nav aria-label="Page navigation" class="mt-4">
                     <ul class="pagination justify-content-center">
                         {% if pagination.has_prev %}
                         <li class="page-item">
-                            <a class="page-link" href="{{ url_for('main.search', page=pagination.prev_num, **request.args) }}" aria-label="Previous">
+                            <a class="page-link" href="{{ url_for('main.search', page=pagination.prev_num, query=request.args.get('query', ''), category=request.args.get('category', ''), data_type=request.args.get('data_type', '')) }}" aria-label="Previous">
                                 <span aria-hidden="true">&laquo;</span>
                             </a>
                         </li>
@@ -161,28 +158,47 @@
                             </a>
                         </li>
                         {% endif %}
-                        
-                        {% for page in pagination.iter_pages() %}
-                            {% if page %}
-                                {% if page != pagination.page %}
-                                <li class="page-item">
-                                    <a class="page-link" href="{{ url_for('main.search', page=page, **request.args) }}">{{ page }}</a>
-                                </li>
-                                {% else %}
-                                <li class="page-item active">
-                                    <a class="page-link" href="#">{{ page }}</a>
-                                </li>
-                                {% endif %}
+
+                        {% set start_page = [1, pagination.page - 2]|max %}
+                        {% set end_page = [pagination.total_pages, pagination.page + 2]|min %}
+
+                        {% if start_page > 1 %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('main.search', page=1, query=request.args.get('query', ''), category=request.args.get('category', ''), data_type=request.args.get('data_type', '')) }}">1</a>
+                        </li>
+                        {% if start_page > 2 %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#">...</a>
+                        </li>
+                        {% endif %}
+                        {% endif %}
+
+                        {% for page_num in range(start_page, end_page + 1) %}
+                            {% if page_num == pagination.page %}
+                            <li class="page-item active">
+                                <a class="page-link" href="#">{{ page_num }}</a>
+                            </li>
                             {% else %}
-                            <li class="page-item disabled">
-                                <a class="page-link" href="#">...</a>
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('main.search', page=page_num, query=request.args.get('query', ''), category=request.args.get('category', ''), data_type=request.args.get('data_type', '')) }}">{{ page_num }}</a>
                             </li>
                             {% endif %}
                         {% endfor %}
-                        
+
+                        {% if end_page < pagination.total_pages %}
+                        {% if end_page < pagination.total_pages - 1 %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#">...</a>
+                        </li>
+                        {% endif %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('main.search', page=pagination.total_pages, query=request.args.get('query', ''), category=request.args.get('category', ''), data_type=request.args.get('data_type', '')) }}">{{ pagination.total_pages }}</a>
+                        </li>
+                        {% endif %}
+
                         {% if pagination.has_next %}
                         <li class="page-item">
-                            <a class="page-link" href="{{ url_for('main.search', page=pagination.next_num, **request.args) }}" aria-label="Next">
+                            <a class="page-link" href="{{ url_for('main.search', page=pagination.next_num, query=request.args.get('query', ''), category=request.args.get('category', ''), data_type=request.args.get('data_type', '')) }}" aria-label="Next">
                                 <span aria-hidden="true">&raquo;</span>
                             </a>
                         </li>
@@ -196,26 +212,22 @@
                     </ul>
                 </nav>
                 {% endif %}
-                
+
             {% else %}
                 <div class="text-center py-5">
-                    {% if search_performed %}
                     <div class="mb-3">
-                        <i class="fas fa-search fa-4x text-muted"></i>
+                        <i class="fas fa-database fa-4x text-muted"></i>
                     </div>
+                    {% if request.args.get('query') or request.args.get('category') or request.args.get('data_type') %}
                     <h4>No results found</h4>
                     <p class="text-muted">Try adjusting your search terms or filters</p>
                     {% else %}
-                    <div class="mb-3">
-                        <i class="fas fa-search fa-4x text-muted"></i>
-                    </div>
-                    <h4>Search for datasets</h4>
-                    <p class="text-muted">Enter search terms above to find datasets</p>
+                    <h4>No datasets available</h4>
+                    <p class="text-muted">No datasets have been uploaded yet</p>
                     {% endif %}
                 </div>
             {% endif %}
         </div>
     </div>
-    {% endif %}
 </div>
 {% endblock %}

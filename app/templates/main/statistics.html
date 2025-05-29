@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Statistics - Dataset Metadata Manager{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Dataset Statistics</h1>
+        </div>
+    </div>
+
+    <!-- Overall Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Total Datasets</h5>
+                    <h2 class="text-primary">{{ stats.total_datasets }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Completed</h5>
+                    <h2 class="text-success">{{ stats.completed_datasets }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">FAIR Compliant</h5>
+                    <h2 class="text-info">{{ stats.fair_compliant }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Schema.org Compliant</h5>
+                    <h2 class="text-warning">{{ stats.schema_org_compliant }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAIR Scores -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">FAIR Compliance Scores</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-2">
+                            <div class="text-center">
+                                <h6>Findable</h6>
+                                <div class="progress mb-2">
+                                    <div class="progress-bar" role="progressbar" style="width: {{ fair_stats.findable }}%">
+                                        {{ fair_stats.findable }}%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="text-center">
+                                <h6>Accessible</h6>
+                                <div class="progress mb-2">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ fair_stats.accessible }}%">
+                                        {{ fair_stats.accessible }}%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="text-center">
+                                <h6>Interoperable</h6>
+                                <div class="progress mb-2">
+                                    <div class="progress-bar bg-info" role="progressbar" style="width: {{ fair_stats.interoperable }}%">
+                                        {{ fair_stats.interoperable }}%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="text-center">
+                                <h6>Reusable</h6>
+                                <div class="progress mb-2">
+                                    <div class="progress-bar bg-warning" role="progressbar" style="width: {{ fair_stats.reusable }}%">
+                                        {{ fair_stats.reusable }}%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <h6>Overall FAIR Score</h6>
+                                <h3 class="text-primary">{{ fair_stats.overall }}%</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category and Data Type Stats -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Datasets by Category</h5>
+                </div>
+                <div class="card-body">
+                    {% for category in category_stats %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>{{ category.name }}</span>
+                        <span class="badge bg-primary">{{ category.count }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Datasets by Data Type</h5>
+                </div>
+                <div class="card-body">
+                    {% for data_type in data_type_stats %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>{{ data_type.name }}</span>
+                        <span class="badge bg-secondary">{{ data_type.count }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

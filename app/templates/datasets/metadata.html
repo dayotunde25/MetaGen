@@ -73,8 +73,8 @@
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
-            <li class="breadcrumb-item"><a href="{{ url_for('datasets.list_datasets') }}">Datasets</a></li>
-            <li class="breadcrumb-item"><a href="{{ url_for('datasets.view_dataset', dataset_id=dataset.id) }}">{{ dataset.title }}</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('datasets.list') }}">Datasets</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('datasets.view', dataset_id=dataset.id) }}">{{ dataset.title }}</a></li>
             <li class="breadcrumb-item active" aria-current="page">Metadata</li>
         </ol>
     </nav>
@@ -96,12 +96,12 @@
                         <a class="list-group-item list-group-item-action" id="schema-tab" data-bs-toggle="list" href="#schema">
                             <i class="fas fa-code me-2"></i>Schema.org JSON-LD
                         </a>
-                        {% if metadata.issues_list() %}
+                        {% if metadata.issues_list %}
                         <a class="list-group-item list-group-item-action" id="issues-tab" data-bs-toggle="list" href="#issues">
                             <i class="fas fa-exclamation-triangle me-2"></i>Issues
                         </a>
                         {% endif %}
-                        {% if metadata.recommendations_list() %}
+                        {% if metadata.recommendations_list %}
                         <a class="list-group-item list-group-item-action" id="recommendations-tab" data-bs-toggle="list" href="#recommendations">
                             <i class="fas fa-lightbulb me-2"></i>Recommendations
                         </a>
@@ -129,7 +129,7 @@
                     <!-- Overview Tab -->
                     <div class="tab-pane fade show active" id="overview">
                         <h3 class="metadata-heading">Metadata Overview</h3>
-                        
+
                         <div class="row mb-4">
                             <div class="col-md-6">
                                 <div class="card h-100">
@@ -175,7 +175,7 @@
                                         <div class="progress mb-3" style="height: 6px;">
                                             <div class="progress-bar" role="progressbar" style="width: {{ metadata.completeness }}%"></div>
                                         </div>
-                                        
+
                                         <div class="d-flex justify-content-between mb-2">
                                             <span>Consistency:</span>
                                             <span class="fw-medium">{{ metadata.consistency|int }}%</span>
@@ -183,12 +183,12 @@
                                         <div class="progress mb-3" style="height: 6px;">
                                             <div class="progress-bar" role="progressbar" style="width: {{ metadata.consistency }}%"></div>
                                         </div>
-                                        
+
                                         <div class="d-flex justify-content-between mt-4 mb-2">
                                             <span>Schema.org Compliant:</span>
                                             <span class="fw-medium">{{ 'Yes' if metadata.schema_org_compliant else 'No' }}</span>
                                         </div>
-                                        
+
                                         <div class="d-flex justify-content-between mb-2">
                                             <span>FAIR Compliant:</span>
                                             <span class="fw-medium">{{ 'Yes' if metadata.fair_compliant else 'No' }}</span>
@@ -202,7 +202,7 @@
                     <!-- FAIR Assessment Tab -->
                     <div class="tab-pane fade" id="fair">
                         <h3 class="metadata-heading">FAIR Principles Assessment</h3>
-                        
+
                         <div class="row mb-4">
                             <div class="col-md-6 mb-4">
                                 <div class="fair-metric findable">
@@ -217,7 +217,7 @@
                                 <div class="progress mb-4" style="height: 8px;">
                                     <div class="progress-bar bg-success" role="progressbar" style="width: {{ metadata.findable_score }}%"></div>
                                 </div>
-                                
+
                                 <div class="fair-metric accessible">
                                     <div class="fair-icon">
                                         <i class="fas fa-key"></i>
@@ -231,7 +231,7 @@
                                     <div class="progress-bar bg-primary" role="progressbar" style="width: {{ metadata.accessible_score }}%"></div>
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-6 mb-4">
                                 <div class="fair-metric interoperable">
                                     <div class="fair-icon">
@@ -245,7 +245,7 @@
                                 <div class="progress mb-4" style="height: 8px;">
                                     <div class="progress-bar bg-warning" role="progressbar" style="width: {{ metadata.interoperable_score }}%"></div>
                                 </div>
-                                
+
                                 <div class="fair-metric reusable">
                                     <div class="fair-icon">
                                         <i class="fas fa-redo"></i>
@@ -260,7 +260,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="card bg-light">
                             <div class="card-body">
                                 <h5 class="mb-3">What are FAIR Principles?</h5>
@@ -278,7 +278,7 @@
                     <!-- Schema.org JSON-LD Tab -->
                     <div class="tab-pane fade" id="schema">
                         <h3 class="metadata-heading">Schema.org JSON-LD</h3>
-                        
+
                         <div class="card metadata-panel">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <div>
@@ -292,7 +292,7 @@
                                 <pre class="json m-0" id="schemaorg-json">{{ metadata.schema_org_metadata }}</pre>
                             </div>
                         </div>
-                        
+
                         <div class="mt-4">
                             <div class="alert alert-info">
                                 <div class="d-flex">
@@ -309,12 +309,12 @@
                     </div>
 
                     <!-- Issues Tab -->
-                    {% if metadata.issues_list() %}
+                    {% if metadata.issues_list %}
                     <div class="tab-pane fade" id="issues">
                         <h3 class="metadata-heading">Identified Issues</h3>
-                        
+
                         <div class="list-group">
-                            {% for issue in metadata.issues_list() %}
+                            {% for issue in metadata.issues_list %}
                             <div class="list-group-item list-group-item-action">
                                 <div class="d-flex w-100 justify-content-between">
                                     <h5 class="mb-1">
@@ -329,12 +329,12 @@
                     {% endif %}
 
                     <!-- Recommendations Tab -->
-                    {% if metadata.recommendations_list() %}
+                    {% if metadata.recommendations_list %}
                     <div class="tab-pane fade" id="recommendations">
                         <h3 class="metadata-heading">Improvement Recommendations</h3>
-                        
+
                         <div class="list-group">
-                            {% for rec in metadata.recommendations_list() %}
+                            {% for rec in metadata.recommendations_list %}
                             <div class="list-group-item list-group-item-action">
                                 <div class="d-flex w-100 justify-content-between">
                                     <h5 class="mb-1">
@@ -363,12 +363,12 @@
             copyBtn.addEventListener('click', function() {
                 const contentId = this.getAttribute('data-content');
                 const content = document.getElementById(contentId).textContent;
-                
+
                 navigator.clipboard.writeText(content).then(() => {
                     // Change button text temporarily
                     const originalText = this.innerHTML;
                     this.innerHTML = '<i class="fas fa-check me-1"></i> Copied!';
-                    
+
                     setTimeout(() => {
                         this.innerHTML = originalText;
                     }, 2000);

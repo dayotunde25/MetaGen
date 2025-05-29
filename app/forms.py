@@ -1,4 +1,5 @@
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileField, FileAllowed
 from wtforms import StringField, TextAreaField, PasswordField, BooleanField, SubmitField, SelectField
 from wtforms.validators import DataRequired, Email, Length, EqualTo, URL, Optional
 from app.models.user import User
@@ -17,14 +18,14 @@ class RegistrationForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired(), Length(min=8)])
     password2 = PasswordField('Repeat Password', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Register')
-    
+
     def validate_username(self, username):
-        user = User.query.filter_by(username=username.data).first()
+        user = User.find_by_username(username.data)
         if user is not None:
             raise ValidationError('Username already taken.')
-    
+
     def validate_email(self, email):
-        user = User.query.filter_by(email=email.data).first()
+        user = User.find_by_email(email.data)
         if user is not None:
             raise ValidationError('Email already registered.')
 
@@ -32,7 +33,16 @@ class DatasetForm(FlaskForm):
     """Form for dataset creation or editing"""
     title = StringField('Title', validators=[DataRequired(), Length(max=255)])
     description = TextAreaField('Description', validators=[Optional(), Length(max=2000)])
-    source_url = StringField('Dataset URL', validators=[Optional(), URL()])
+
+    # File upload field
+    dataset_file = FileField('Upload Dataset File', validators=[
+        FileAllowed(['csv', 'json', 'xml', 'txt', 'tsv', 'xlsx', 'xls'],
+                   'Only CSV, JSON, XML, TXT, TSV, and Excel files are allowed!')
+    ])
+
+    # Alternative URL field
+    source_url = StringField('Or Dataset URL', validators=[Optional(), URL()])
+
     source = StringField('Source', validators=[Optional(), Length(max=128)])
     data_type = SelectField('Data Type', choices=[
         ('', 'Select Data Type'),

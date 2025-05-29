@@ -1,166 +1,244 @@
+"""
+NLP Service for dataset processing and analysis.
+"""
+
 import re
-import nltk
-import numpy as np
-from nltk.tokenize import word_tokenize
-from nltk.corpus import stopwords
-from nltk.stem import PorterStemmer
-import spacy
+import json
 from collections import Counter
+from datetime import datetime
+from typing import List, Dict, Any, Optional
+
+try:
+    import spacy
+    SPACY_AVAILABLE = True
+except ImportError:
+    SPACY_AVAILABLE = False
+
+try:
+    import nltk
+    from nltk.corpus import stopwords
+    from nltk.tokenize import word_tokenize
+    from nltk.stem import PorterStemmer
+    NLTK_AVAILABLE = True
+except ImportError:
+    NLTK_AVAILABLE = False
+
 
 class NLPService:
-    """Service for natural language processing tasks related to dataset metadata"""
+    """Service for NLP processing of dataset content and metadata"""
     
     def __init__(self):
-        """Initialize NLP service"""
         self.nlp = None
-        self.stop_words = None
-        self.stemmer = PorterStemmer()
-        
-    def _ensure_spacy_model(self):
-        """Ensure spaCy model is loaded (lazy loading)"""
-        if self.nlp is None:
+        self.stemmer = None
+        self.stop_words = set()
+        self._initialize_nlp()
+    
+    def _initialize_nlp(self):
+        """Initialize NLP libraries if available"""
+        # Initialize spaCy if available
+        if SPACY_AVAILABLE:
             try:
-                self.nlp = spacy.load('en_core_web_sm')
-            except:
-                # If model isn't available, try to download it
-                import subprocess
-                subprocess.run(['python', '-m', 'spacy', 'download', 'en_core_web_sm'])
-                self.nlp = spacy.load('en_core_web_sm')
+                self.nlp = spacy.load("en_core_web_sm")
+            except OSError:
+                print("Warning: spaCy English model not found. Install with: python -m spacy download en_core_web_sm")
+                self.nlp = None
+        
+        # Initialize NLTK if available
+        if NLTK_AVAILABLE:
+            try:
+                self.stemmer = PorterStemmer()
+                self.stop_words = set(stopwords.words('english'))
+            except LookupError:
+                print("Warning: NLTK data not found. Download with: nltk.download('stopwords') and nltk.download('punkt')")
+                self.stemmer = None
+                self.stop_words = set()
     
-    def _ensure_nltk_resources(self):
-        """Ensure NLTK resources are downloaded"""
-        try:
-            self.stop_words = set(stopwords.words('english'))
-        except:
-            nltk.download('stopwords')
-            nltk.download('punkt')
-            self.stop_words = set(stopwords.words('english'))
-    
-    def preprocess_text(self, text):
-        """Preprocess text for analysis"""
+    def extract_keywords(self, text: str, max_keywords: int = 10) -> List[str]:
+        """Extract keywords from text using available NLP libraries"""
         if not text:
             return []
         
-        # Ensure resources are available
-        self._ensure_nltk_resources()
+        # Clean text
+        text = self._clean_text(text)
         
-        # Convert to lowercase
-        text = text.lower()
-        
-        # Remove special characters and digits
-        text = re.sub(r'[^a-zA-Z\s]', '', text)
-        
-        # Tokenize
-        tokens = word_tokenize(text)
-        
-        # Remove stopwords and stem
-        tokens = [self.stemmer.stem(token) for token in tokens if token not in self.stop_words and len(token) > 2]
-        
-        return tokens
+        if self.nlp:
+            return self._extract_keywords_spacy(text, max_keywords)
+        elif NLTK_AVAILABLE:
+            return self._extract_keywords_nltk(text, max_keywords)
+        else:
+            return self._extract_keywords_simple(text, max_keywords)
     
-    def _calculate_tf(self, term, document):
-        """Calculate term frequency"""
-        term_count = document.count(term)
-        return term_count / len(document) if document else 0
+    def _clean_text(self, text: str) -> str:
+        """Clean and normalize text"""
+        # Remove special characters and normalize whitespace
+        text = re.sub(r'[^\w\s]', ' ', text)
+        text = re.sub(r'\s+', ' ', text)
+        return text.strip().lower()
     
-    def _calculate_idf(self, term, documents):
-        """Calculate inverse document frequency"""
-        doc_count = sum(1 for doc in documents if term in doc)
-        return np.log(len(documents) / (doc_count + 1))
-    
-    def _calculate_tfidf(self, term, document, documents):
-        """Calculate TF-IDF score"""
-        return self._calculate_tf(term, document) * self._calculate_idf(term, documents)
-    
-    def extract_keywords(self, text, num_keywords=10):
-        """Extract keywords from text using TF-IDF-like approach"""
-        # Preprocess text
-        tokens = self.preprocess_text(text)
-        
-        # If text is too short, return the tokens
-        if len(tokens) < num_keywords * 2:
-            return tokens[:num_keywords]
-        
-        # Split tokens into sentences (simplified approach)
-        sentences = []
-        sentence_size = max(5, len(tokens) // 10)
-        for i in range(0, len(tokens), sentence_size):
-            sentences.append(tokens[i:i+sentence_size])
-        
-        # Calculate TF-IDF for each term
-        tfidf_scores = {}
-        for term in set(tokens):
-            tfidf_scores[term] = self._calculate_tfidf(term, tokens, sentences)
-        
-        # Return top keywords
-        keywords = sorted(tfidf_scores.items(), key=lambda x: x[1], reverse=True)
-        return [kw[0] for kw in keywords[:num_keywords]]
-    
-    def compute_text_similarity(self, text1, text2):
-        """Compute similarity between two texts using token overlap"""
-        # Preprocess texts
-        tokens1 = set(self.preprocess_text(text1))
-        tokens2 = set(self.preprocess_text(text2))
-        
-        # Calculate Jaccard similarity
-        if not tokens1 or not tokens2:
-            return 0
-        
-        intersection = tokens1.intersection(tokens2)
-        union = tokens1.union(tokens2)
-        
-        return len(intersection) / len(union)
-    
-    def semantic_search(self, query, documents, document_ids=None):
-        """Perform semantic search across documents"""
-        # Preprocess query
-        query_tokens = self.preprocess_text(query)
-        
-        # If no tokens in query, return empty results
-        if not query_tokens:
-            return []
-        
-        # Calculate similarity scores
-        scores = []
-        for i, doc in enumerate(documents):
-            # Calculate similarity score
-            sim_score = self.compute_text_similarity(query, doc)
-            
-            # Store score and document ID
-            doc_id = document_ids[i] if document_ids else i
-            scores.append((doc_id, sim_score))
-        
-        # Sort by similarity score (descending)
-        scores.sort(key=lambda x: x[1], reverse=True)
-        
-        return scores
-    
-    def suggest_tags(self, text, num_tags=5):
-        """Suggest tags based on text content"""
-        # Make sure spaCy is loaded
-        self._ensure_spacy_model()
-        
-        # Process the text with spaCy
+    def _extract_keywords_spacy(self, text: str, max_keywords: int) -> List[str]:
+        """Extract keywords using spaCy"""
         doc = self.nlp(text)
         
-        # Extract nouns and named entities
-        nouns = [token.text.lower() for token in doc if token.pos_ in ('NOUN', 'PROPN') and len(token.text) > 3]
-        entities = [ent.text.lower() for ent in doc.ents if len(ent.text) > 3]
+        # Extract nouns, proper nouns, and adjectives
+        keywords = []
+        for token in doc:
+            if (token.pos_ in ['NOUN', 'PROPN', 'ADJ'] and 
+                not token.is_stop and 
+                not token.is_punct and 
+                len(token.text) > 2):
+                keywords.append(token.lemma_.lower())
         
-        # Count frequencies
-        all_terms = nouns + entities
-        term_counts = Counter(all_terms)
+        # Count frequency and return most common
+        keyword_counts = Counter(keywords)
+        return [word for word, _ in keyword_counts.most_common(max_keywords)]
+    
+    def _extract_keywords_nltk(self, text: str, max_keywords: int) -> List[str]:
+        """Extract keywords using NLTK"""
+        try:
+            tokens = word_tokenize(text)
+            
+            # Filter tokens
+            keywords = []
+            for token in tokens:
+                if (len(token) > 2 and 
+                    token.lower() not in self.stop_words and 
+                    token.isalpha()):
+                    if self.stemmer:
+                        keywords.append(self.stemmer.stem(token.lower()))
+                    else:
+                        keywords.append(token.lower())
+            
+            # Count frequency and return most common
+            keyword_counts = Counter(keywords)
+            return [word for word, _ in keyword_counts.most_common(max_keywords)]
+        except:
+            return self._extract_keywords_simple(text, max_keywords)
+    
+    def _extract_keywords_simple(self, text: str, max_keywords: int) -> List[str]:
+        """Simple keyword extraction without external libraries"""
+        # Basic stop words
+        stop_words = {
+            'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 
+            'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'have', 
+            'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should',
+            'this', 'that', 'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they'
+        }
         
-        # Return most common terms as tags
-        tags = [term for term, _ in term_counts.most_common(num_tags)]
+        words = text.split()
+        keywords = []
         
-        # If we don't have enough tags, add keywords
-        if len(tags) < num_tags:
-            keywords = self.extract_keywords(text, num_tags - len(tags))
-            tags.extend([kw for kw in keywords if kw not in tags])
+        for word in words:
+            if (len(word) > 2 and 
+                word.lower() not in stop_words and 
+                word.isalpha()):
+                keywords.append(word.lower())
+        
+        # Count frequency and return most common
+        keyword_counts = Counter(keywords)
+        return [word for word, _ in keyword_counts.most_common(max_keywords)]
+    
+    def suggest_tags(self, text: str, num_tags: int = 5) -> List[str]:
+        """Suggest tags based on text content"""
+        keywords = self.extract_keywords(text, num_tags * 2)
+        
+        # Filter and clean keywords for tags
+        tags = []
+        for keyword in keywords:
+            if len(keyword) > 2 and keyword.isalpha():
+                tags.append(keyword.replace('_', ' ').title())
         
         return tags[:num_tags]
+    
+    def analyze_sentiment(self, text: str) -> Dict[str, Any]:
+        """Basic sentiment analysis"""
+        if not text:
+            return {'sentiment': 'neutral', 'confidence': 0.0}
+        
+        # Simple sentiment analysis using word lists
+        positive_words = {
+            'good', 'great', 'excellent', 'amazing', 'wonderful', 'fantastic', 
+            'positive', 'beneficial', 'useful', 'valuable', 'important', 'significant'
+        }
+        
+        negative_words = {
+            'bad', 'terrible', 'awful', 'horrible', 'negative', 'poor', 'useless', 
+            'problematic', 'difficult', 'challenging', 'limited', 'incomplete'
+        }
+        
+        words = self._clean_text(text).split()
+        positive_count = sum(1 for word in words if word in positive_words)
+        negative_count = sum(1 for word in words if word in negative_words)
+        
+        total_sentiment_words = positive_count + negative_count
+        
+        if total_sentiment_words == 0:
+            return {'sentiment': 'neutral', 'confidence': 0.0}
+        
+        if positive_count > negative_count:
+            sentiment = 'positive'
+            confidence = positive_count / total_sentiment_words
+        elif negative_count > positive_count:
+            sentiment = 'negative'
+            confidence = negative_count / total_sentiment_words
+        else:
+            sentiment = 'neutral'
+            confidence = 0.5
+        
+        return {
+            'sentiment': sentiment,
+            'confidence': round(confidence, 2),
+            'positive_words': positive_count,
+            'negative_words': negative_count
+        }
+    
+    def extract_entities(self, text: str) -> List[Dict[str, str]]:
+        """Extract named entities from text"""
+        if not text or not self.nlp:
+            return []
+        
+        doc = self.nlp(text)
+        entities = []
+        
+        for ent in doc.ents:
+            entities.append({
+                'text': ent.text,
+                'label': ent.label_,
+                'description': spacy.explain(ent.label_) if spacy.explain(ent.label_) else ent.label_
+            })
+        
+        return entities
+    
+    def generate_summary(self, text: str, max_sentences: int = 3) -> str:
+        """Generate a simple extractive summary"""
+        if not text:
+            return ""
+        
+        # Split into sentences
+        sentences = re.split(r'[.!?]+', text)
+        sentences = [s.strip() for s in sentences if len(s.strip()) > 10]
+        
+        if len(sentences) <= max_sentences:
+            return '. '.join(sentences) + '.'
+        
+        # Score sentences based on keyword frequency
+        keywords = self.extract_keywords(text, 10)
+        sentence_scores = {}
+        
+        for i, sentence in enumerate(sentences):
+            score = 0
+            sentence_words = self._clean_text(sentence).split()
+            for word in sentence_words:
+                if word in keywords:
+                    score += 1
+            sentence_scores[i] = score
+        
+        # Select top sentences
+        top_sentences = sorted(sentence_scores.items(), key=lambda x: x[1], reverse=True)[:max_sentences]
+        top_sentences.sort(key=lambda x: x[0])  # Sort by original order
+        
+        summary_sentences = [sentences[i] for i, _ in top_sentences]
+        return '. '.join(summary_sentences) + '.'
 
 
-# Create a singleton instance
+# Global service instance
 nlp_service = NLPService()

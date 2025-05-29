@@ -15,7 +15,7 @@
                     <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary btn-lg">
                         Go to Dashboard
                     </a>
-                    <a href="{{ url_for('datasets.add_dataset') }}" class="btn btn-outline-primary btn-lg">
+                    <a href="{{ url_for('datasets.create') }}" class="btn btn-outline-primary btn-lg">
                         Add New Dataset
                     </a>
                     {% else %}
@@ -121,7 +121,7 @@
             <h2 class="fw-bold mb-3">Ready to enhance your research datasets?</h2>
             <p class="lead mb-4">Join researchers worldwide using our platform to make their datasets more discoverable and reusable.</p>
             {% if current_user.is_authenticated %}
-            <a href="{{ url_for('datasets.add_dataset') }}" class="btn btn-light btn-lg px-4 me-sm-3">
+            <a href="{{ url_for('datasets.create') }}" class="btn btn-light btn-lg px-4 me-sm-3">
                 Add Your Dataset
             </a>
             {% else %}

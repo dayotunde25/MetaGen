@@ -1,0 +1,15 @@
+# Semantic Search Dependencies for AIMetaHarvest
+# Install these packages for enhanced search functionality
+
+# Core ML/NLP packages
+scikit-learn>=1.3.0
+sentence-transformers>=2.2.2
+transformers>=4.21.0
+torch>=1.12.0
+
+# Optional: For better performance
+# faiss-cpu>=1.7.4  # For fast similarity search (optional)
+# accelerate>=0.20.0  # For faster BERT inference (optional)
+
+# Note: These packages are optional and will gracefully degrade if not available
+# The search service will fall back to basic text search if these are not installed
