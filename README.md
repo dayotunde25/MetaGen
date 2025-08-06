@@ -1,4 +1,4 @@
-# AI Meta Harvest - Dataset Metadata Management System
+# Metadata Generation Framework - Dataset Metadata Management System
 
 A comprehensive web application for managing dataset metadata with advanced NLP capabilities, semantic search, and AI-powered description generation.
 
