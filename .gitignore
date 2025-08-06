@@ -193,7 +193,6 @@ model.*/
 # Environment and local settings
 .env
 .env.*
-!.env.advanced_nlp
 instance/
 logs/
 *.log
