@@ -191,18 +191,23 @@
                         </div>
                         <div class="col-lg-4">
                             <div class="fair-compliance-status text-center p-4 mb-3">
-                                <div class="status-indicator mb-3 
-                                    {% if quality.fair_compliant %}bg-success{% else %}bg-warning{% endif %}">
-                                    <i class="fas {% if quality.fair_compliant %}fa-check{% else %}fa-exclamation-triangle{% endif %}"></i>
+                                {% set fair_status_text = (dataset.fair_score or 0) | fair_status_text %}
+                                <div class="status-indicator mb-3
+                                    {% if (dataset.fair_score or 0) >= 80 %}bg-success{% elif (dataset.fair_score or 0) >= 50 %}bg-warning{% else %}bg-danger{% endif %}">
+                                    <i class="fas {% if (dataset.fair_score or 0) >= 80 %}fa-check{% elif (dataset.fair_score or 0) >= 50 %}fa-exclamation-triangle{% else %}fa-times{% endif %}"></i>
                                 </div>
                                 <h4>FAIR Compliance</h4>
                                 <p class="mb-0">
-                                    {% if quality.fair_compliant %}
-                                    This dataset is compliant with FAIR principles.
-                                    {% else %}
-                                    This dataset is not yet fully compliant with FAIR principles.
-                                    {% endif %}
+                                    Status: <strong>{{ fair_status_text }}</strong> ({{ "%.1f"|format(dataset.fair_score or 0) }}%)
                                 </p>
+                                {% if dataset.persistent_identifier %}
+                                <div class="mt-3">
+                                    <small class="text-muted">
+                                        <strong>Persistent ID:</strong><br>
+                                        <code>{{ dataset.persistent_identifier }}</code>
+                                    </small>
+                                </div>
+                                {% endif %}
                             </div>
                             
                             <div class="schema-org-status text-center p-4">
@@ -225,7 +230,161 @@
             </div>
         </div>
     </div>
-    
+
+    <!-- FAIR Metadata Details -->
+    {% if dataset.fair_metadata or dataset.dublin_core or dataset.dcat_metadata %}
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-database me-2"></i>
+                        FAIR Metadata Standards
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% if dataset.persistent_identifier %}
+                        <div class="col-md-12 mb-4">
+                            <div class="alert alert-info">
+                                <h6><i class="fas fa-link me-2"></i>Persistent Identifier</h6>
+                                <p class="mb-0">
+                                    This dataset has been assigned a persistent identifier for long-term findability:
+                                    <br><strong><code>{{ dataset.persistent_identifier }}</code></strong>
+                                </p>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="col-md-4 mb-3">
+                            <div class="metadata-standard-card h-100">
+                                <div class="card-header bg-primary text-white">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-tags me-2"></i>
+                                        Dublin Core
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    {% if dataset.dublin_core %}
+                                    <p class="text-success mb-2">
+                                        <i class="fas fa-check-circle me-1"></i>
+                                        Available
+                                    </p>
+                                    <small class="text-muted">
+                                        Standard metadata elements for resource description
+                                    </small>
+                                    <div class="mt-2">
+                                        <button class="btn btn-sm btn-outline-primary" onclick="showMetadata('dublin_core')">
+                                            View Details
+                                        </button>
+                                    </div>
+                                    {% else %}
+                                    <p class="text-warning mb-2">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>
+                                        Not Available
+                                    </p>
+                                    <small class="text-muted">
+                                        Dublin Core metadata not generated
+                                    </small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <div class="metadata-standard-card h-100">
+                                <div class="card-header bg-info text-white">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-sitemap me-2"></i>
+                                        DCAT
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    {% if dataset.dcat_metadata %}
+                                    <p class="text-success mb-2">
+                                        <i class="fas fa-check-circle me-1"></i>
+                                        Available
+                                    </p>
+                                    <small class="text-muted">
+                                        Data Catalog Vocabulary for web-based data catalogs
+                                    </small>
+                                    <div class="mt-2">
+                                        <button class="btn btn-sm btn-outline-info" onclick="showMetadata('dcat')">
+                                            View Details
+                                        </button>
+                                    </div>
+                                    {% else %}
+                                    <p class="text-warning mb-2">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>
+                                        Not Available
+                                    </p>
+                                    <small class="text-muted">
+                                        DCAT metadata not generated
+                                    </small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <div class="metadata-standard-card h-100">
+                                <div class="card-header bg-success text-white">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-code me-2"></i>
+                                        JSON-LD
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    {% if dataset.json_ld %}
+                                    <p class="text-success mb-2">
+                                        <i class="fas fa-check-circle me-1"></i>
+                                        Available
+                                    </p>
+                                    <small class="text-muted">
+                                        Linked Data format for machine-readable metadata
+                                    </small>
+                                    <div class="mt-2">
+                                        <button class="btn btn-sm btn-outline-success" onclick="showMetadata('json_ld')">
+                                            View Details
+                                        </button>
+                                    </div>
+                                    {% else %}
+                                    <p class="text-warning mb-2">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>
+                                        Not Available
+                                    </p>
+                                    <small class="text-muted">
+                                        JSON-LD metadata not generated
+                                    </small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if dataset.fair_metadata %}
+                    <div class="row mt-4">
+                        <div class="col-md-12">
+                            <div class="alert alert-light">
+                                <h6><i class="fas fa-info-circle me-2"></i>Comprehensive FAIR Metadata</h6>
+                                <p class="mb-2">
+                                    This dataset includes comprehensive FAIR-compliant metadata covering all four principles:
+                                    Findable, Accessible, Interoperable, and Reusable.
+                                </p>
+                                <button class="btn btn-sm btn-outline-dark" onclick="showMetadata('fair_metadata')">
+                                    <i class="fas fa-eye me-1"></i>
+                                    View Full FAIR Metadata
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Recommendations and Issues -->
     <div class="row">
         <div class="col-md-6 mb-4">
@@ -378,5 +537,157 @@
         border-radius: 8px;
         background-color: rgba(0,0,0,0.03);
     }
+
+    .metadata-standard-card {
+        border: 1px solid rgba(0,0,0,0.1);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .metadata-standard-card:hover {
+        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
 </style>
+{% endblock %}
+
+<!-- Metadata Viewer Modal -->
+<div class="modal fade" id="metadataModal" tabindex="-1" aria-labelledby="metadataModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="metadataModalLabel">Metadata Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="metadataContent">
+                    <div class="text-center py-4">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="copyMetadata()">
+                    <i class="fas fa-copy me-1"></i>
+                    Copy to Clipboard
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+{{ super() }}
+<script>
+let currentMetadata = '';
+
+function showMetadata(type) {
+    const modal = new bootstrap.Modal(document.getElementById('metadataModal'));
+    const modalTitle = document.getElementById('metadataModalLabel');
+    const modalContent = document.getElementById('metadataContent');
+
+    // Set title based on type
+    const titles = {
+        'dublin_core': 'Dublin Core Metadata',
+        'dcat': 'DCAT Metadata',
+        'json_ld': 'JSON-LD Structured Data',
+        'fair_metadata': 'Comprehensive FAIR Metadata'
+    };
+
+    modalTitle.textContent = titles[type] || 'Metadata Details';
+
+    // Show loading
+    modalContent.innerHTML = `
+        <div class="text-center py-4">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    `;
+
+    modal.show();
+
+    // Get metadata from dataset
+    const metadata = getDatasetMetadata(type);
+
+    if (metadata) {
+        try {
+            const parsed = JSON.parse(metadata);
+            currentMetadata = JSON.stringify(parsed, null, 2);
+
+            modalContent.innerHTML = `
+                <div class="bg-light p-3 rounded">
+                    <pre><code class="language-json">${escapeHtml(currentMetadata)}</code></pre>
+                </div>
+            `;
+        } catch (e) {
+            modalContent.innerHTML = `
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Error parsing metadata: ${e.message}
+                </div>
+            `;
+        }
+    } else {
+        modalContent.innerHTML = `
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                No ${titles[type]} available for this dataset.
+            </div>
+        `;
+    }
+}
+
+function getDatasetMetadata(type) {
+    // This would normally come from the server, but for now we'll use template data
+    const metadataMap = {
+        {% if dataset.dublin_core %}'dublin_core': {{ dataset.dublin_core|tojson }},{% endif %}
+        {% if dataset.dcat_metadata %}'dcat': {{ dataset.dcat_metadata|tojson }},{% endif %}
+        {% if dataset.json_ld %}'json_ld': {{ dataset.json_ld|tojson }},{% endif %}
+        {% if dataset.fair_metadata %}'fair_metadata': {{ dataset.fair_metadata|tojson }}{% endif %}
+    };
+
+    return metadataMap[type] || null;
+}
+
+function copyMetadata() {
+    if (currentMetadata) {
+        navigator.clipboard.writeText(currentMetadata).then(() => {
+            // Show success message
+            const toast = document.createElement('div');
+            toast.className = 'toast align-items-center text-white bg-success border-0 position-fixed top-0 end-0 m-3';
+            toast.style.zIndex = '9999';
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="fas fa-check me-2"></i>
+                        Metadata copied to clipboard!
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            `;
+
+            document.body.appendChild(toast);
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+
+            // Remove toast after it's hidden
+            toast.addEventListener('hidden.bs.toast', () => {
+                document.body.removeChild(toast);
+            });
+        }).catch(err => {
+            console.error('Failed to copy metadata:', err);
+        });
+    }
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+</script>
 {% endblock %}

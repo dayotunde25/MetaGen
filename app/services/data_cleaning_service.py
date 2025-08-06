@@ -35,68 +35,102 @@ class DataCleaningService:
     def clean_dataset(self, dataset_data: Dict[str, Any], cleaning_config: Dict[str, Any] = None) -> Dict[str, Any]:
         """
         Perform comprehensive data cleaning on a dataset.
-        
+
         Args:
             dataset_data: Raw dataset data with samples and schema
             cleaning_config: Configuration for cleaning operations
-            
+
         Returns:
             Cleaned dataset with transformation log
         """
         if not cleaning_config:
             cleaning_config = self._get_default_cleaning_config()
-            
+
         self.cleaning_stats = {}
         self.transformation_log = []
-        
+
         try:
-            # Extract samples for cleaning
-            samples = dataset_data.get('sample_data', [])
-            if not samples:
-                return dataset_data
-                
-            # Convert to DataFrame for easier processing
-            df = pd.DataFrame(samples)
+            # Check if we have full dataset or just samples
+            if 'dataframe' in dataset_data and dataset_data['dataframe'] is not None:
+                # Use full dataset DataFrame
+                df = dataset_data['dataframe'].copy()
+                print(f"Data cleaning: Processing full dataset with {len(df)} records")
+                processing_mode = 'full'
+            elif 'full_data' in dataset_data and dataset_data['full_data'] is not None:
+                # Use full data records
+                df = pd.DataFrame(dataset_data['full_data'])
+                print(f"Data cleaning: Processing full data with {len(df)} records")
+                processing_mode = 'full'
+            else:
+                # Fallback to sample data
+                samples = dataset_data.get('sample_data', [])
+                if not samples:
+                    return dataset_data
+                df = pd.DataFrame(samples)
+                print(f"Data cleaning: Processing sample data with {len(df)} records")
+                processing_mode = 'sample'
+
+            # Preserve the original record count from the full dataset
+            original_record_count = dataset_data.get('record_count', len(df))
             original_shape = df.shape
-            
+
             # Step 1: Remove duplicates
             if cleaning_config.get('remove_duplicates', True):
                 df = self._remove_duplicates(df)
-                
+
             # Step 2: Handle missing values
             if cleaning_config.get('handle_missing', True):
                 df = self._handle_missing_values(df, cleaning_config.get('missing_strategy', 'auto'))
-                
+
             # Step 3: Standardize data types
             if cleaning_config.get('standardize_types', True):
                 df = self._standardize_data_types(df)
-                
+
             # Step 4: Normalize formats
             if cleaning_config.get('normalize_formats', True):
                 df = self._normalize_formats(df)
-                
+
             # Step 5: Detect and handle outliers
             if cleaning_config.get('handle_outliers', True):
                 df = self._handle_outliers(df, cleaning_config.get('outlier_method', 'iqr'))
-                
+
             # Step 6: Validate and correct data
             if cleaning_config.get('validate_data', True):
                 df = self._validate_and_correct(df)
-                
+
             # Update dataset with cleaned data
             cleaned_data = dataset_data.copy()
-            cleaned_data['sample_data'] = df.to_dict(orient='records')
-            cleaned_data['record_count'] = len(df)
+
+            # Store cleaned data appropriately
+            if len(df) <= 1000:  # Store full cleaned data for small datasets
+                cleaned_data['full_data'] = df.to_dict(orient='records')
+                cleaned_data['dataframe'] = df  # Keep DataFrame for further processing
+
+            # Always update sample data with cleaned sample
+            cleaned_data['sample_data'] = df.head(10).to_dict(orient='records')
+
+            # IMPORTANT: Use actual cleaned dataset size if we processed the full dataset
+            if len(df) == original_record_count:
+                cleaned_data['record_count'] = len(df)  # Use actual cleaned size
+                self._log_transformation(f"Full dataset processed and cleaned: {len(df)} records")
+            else:
+                cleaned_data['record_count'] = original_record_count  # Preserve original count for samples
+                self._log_transformation(f"Sample processed, full dataset record count preserved: {original_record_count}")
+
+            # Add cleaning statistics
             cleaned_data['cleaning_stats'] = self.cleaning_stats
             cleaned_data['transformation_log'] = self.transformation_log
-            
+            cleaned_data['cleaned_shape'] = df.shape
+            cleaned_data['original_shape'] = original_shape
+            cleaned_data['processed_records'] = len(df)
+
             # Update schema with cleaned types
             cleaned_data['schema'] = self._generate_cleaned_schema(df)
-            
+
             self._log_transformation(f"Dataset cleaned: {original_shape} -> {df.shape}")
-            
+
             return cleaned_data
-            
+
         except Exception as e:
             logger.error(f"Error during data cleaning: {e}")
             self._log_transformation(f"Cleaning failed: {str(e)}")

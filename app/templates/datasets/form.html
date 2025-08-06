@@ -157,11 +157,46 @@
                             <div class="form-text">Separate tags with commas. Good tags improve searchability.</div>
                         </div>
 
+                        <!-- Additional Metadata Fields -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                {{ form.license.label(class="form-label") }}
+                                {% if form.license.errors %}
+                                    {{ form.license(class="form-control is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.license.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form.license(class="form-control", placeholder="e.g., MIT, CC BY 4.0, Public Domain") }}
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.author.label(class="form-label") }}
+                                {% if form.author.errors %}
+                                    {{ form.author(class="form-control is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.author.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form.author(class="form-control", placeholder="Dataset author or organization") }}
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-magic me-2"></i>
+                            <strong>Smart Processing:</strong> Fields marked as "auto-generated" or "auto-detected" will be automatically filled using AI and NLP techniques if left empty. The system will analyze your dataset to extract metadata, generate descriptions, detect categories, and ensure FAIR compliance.
+                        </div>
+
                         <div class="d-flex justify-content-between">
                             <a href="{{ url_for('datasets.list') }}" class="btn btn-outline-secondary">
                                 <i class="fas fa-arrow-left me-1"></i> Back to Datasets
                             </a>
-                            {{ form.submit(class="btn btn-primary") }}
+                            {{ form.submit(class="btn btn-primary", id="submitButton") }}
                         </div>
                     </form>
                 </div>
@@ -169,4 +204,109 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form[enctype="multipart/form-data"]');
+    const submitButton = document.getElementById('submitButton');
+    const fileInput = document.querySelector('input[type="file"]');
+    const titleInput = document.querySelector('input[name="title"]');
+
+    if (form && submitButton) {
+        form.addEventListener('submit', function(e) {
+            // Get form data for loading message
+            const title = titleInput ? titleInput.value.trim() : '';
+            const fileName = fileInput && fileInput.files.length > 0 ? fileInput.files[0].name : '';
+
+            // Determine loading type and message
+            let loadingType = 'upload';
+            let customMessage = '';
+
+            if (fileName) {
+                customMessage = `Uploading "${fileName}"...`;
+            } else if (title) {
+                customMessage = `Processing "${title}"...`;
+                loadingType = 'processing';
+            }
+
+            // Show loading animation
+            const loaderId = window.smartLoader.show(loadingType, {
+                subtitle: customMessage || 'Uploading and processing dataset...',
+                tips: 'This may take a few moments depending on file size and complexity'
+            });
+
+            // Update button state
+            const originalButtonText = submitButton.innerHTML;
+            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Processing...';
+            submitButton.disabled = true;
+
+            // Store loader ID for cleanup
+            window.currentUploadLoader = loaderId;
+
+            // Add timeout fallback
+            setTimeout(() => {
+                if (window.currentUploadLoader) {
+                    window.smartLoader.hide(window.currentUploadLoader);
+                    submitButton.innerHTML = originalButtonText;
+                    submitButton.disabled = false;
+                }
+            }, 30000); // 30 second timeout for uploads
+        });
+    }
+
+    // File input change handler for preview
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                // Show file info
+                const fileInfo = document.createElement('div');
+                fileInfo.className = 'alert alert-info mt-2';
+                fileInfo.innerHTML = `
+                    <i class="fas fa-file me-2"></i>
+                    <strong>Selected:</strong> ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)
+                `;
+
+                // Remove existing file info
+                const existingInfo = this.parentNode.querySelector('.alert-info');
+                if (existingInfo) {
+                    existingInfo.remove();
+                }
+
+                // Add new file info
+                this.parentNode.appendChild(fileInfo);
+
+                // Auto-fill title if empty
+                if (titleInput && !titleInput.value.trim()) {
+                    const baseName = file.name.replace(/\.[^/.]+$/, ""); // Remove extension
+                    const cleanName = baseName.replace(/[_-]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    titleInput.value = cleanName;
+                }
+            }
+        });
+    }
+
+    // Form validation enhancement
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const hasFile = fileInput && fileInput.files.length > 0;
+            const hasUrl = document.querySelector('input[name="source_url"]')?.value.trim();
+
+            if (!hasFile && !hasUrl) {
+                e.preventDefault();
+                alert('Please either upload a file or provide a source URL.');
+                return false;
+            }
+
+            if (hasFile && hasUrl) {
+                e.preventDefault();
+                alert('Please provide either a file upload OR a source URL, not both.');
+                return false;
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

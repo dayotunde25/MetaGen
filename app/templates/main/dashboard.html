@@ -242,8 +242,19 @@
 
     <!-- Processing Queue -->
     <div class="card mb-4">
-        <div class="card-header">
+        <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>Processing Queue</h5>
+            <div>
+                <button class="btn btn-sm btn-outline-secondary me-2" onclick="refreshQueue()">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+                <form style="display: inline;" method="POST" action="{{ url_for('datasets.fix_stuck_queue') }}" onsubmit="return confirm('This will fix stuck queue items. Continue?')">
+                    {{ fix_queue_form.hidden_tag() }}
+                    <button type="submit" class="btn btn-sm btn-outline-warning">
+                        <i class="fas fa-wrench"></i> Fix Stuck Items
+                    </button>
+                </form>
+            </div>
         </div>
         <div class="card-body">
             {% if processing_queue %}
@@ -280,4 +291,11 @@
         </div>
     </div>
 </div>
+
+<script>
+function refreshQueue() {
+    // Simple page refresh to update queue status
+    window.location.reload();
+}
+</script>
 {% endblock %}

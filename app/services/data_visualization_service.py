@@ -128,6 +128,14 @@ class DataVisualizationService:
         
         # Record count visualization
         record_count = processed_data.get('record_count', 0)
+
+        # Ensure record_count is an integer
+        if not isinstance(record_count, (int, float)):
+            try:
+                record_count = int(record_count) if record_count else 0
+            except (ValueError, TypeError):
+                record_count = 0
+
         if record_count > 0:
             charts['record_count'] = {
                 'type': 'metric',
@@ -413,6 +421,14 @@ class DataVisualizationService:
         for field_name, field_info in schema.items():
             if isinstance(field_info, dict):
                 null_count = field_info.get('null_count', 0)
+
+                # Ensure null_count is an integer
+                if not isinstance(null_count, (int, float)):
+                    try:
+                        null_count = int(null_count) if null_count else 0
+                    except (ValueError, TypeError):
+                        null_count = 0
+
                 total_count = len(sample_data)
                 completeness = ((total_count - null_count) / total_count * 100) if total_count > 0 else 0
                 
@@ -437,6 +453,14 @@ class DataVisualizationService:
         for field_name, field_info in schema.items():
             if isinstance(field_info, dict):
                 unique_count = field_info.get('unique_count', 0)
+
+                # Ensure unique_count is an integer
+                if not isinstance(unique_count, (int, float)):
+                    try:
+                        unique_count = int(unique_count) if unique_count else 0
+                    except (ValueError, TypeError):
+                        unique_count = 0
+
                 total_count = len(sample_data)
                 uniqueness = (unique_count / total_count * 100) if total_count > 0 else 0
                 

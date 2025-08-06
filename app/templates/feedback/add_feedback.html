@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}Add Feedback - {{ dataset.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('datasets.metadata', dataset_id=dataset.id) }}">{{ dataset.title }}</a></li>
+            <li class="breadcrumb-item active">Add Feedback</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-star me-2"></i>
+                        {% if existing_feedback %}Update Your Feedback{% else %}Add Your Feedback{% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6 class="text-muted">Dataset: {{ dataset.title }}</h6>
+                        <p class="text-muted small">{{ dataset.description[:200] }}{% if dataset.description|length > 200 %}...{% endif %}</p>
+                    </div>
+
+                    <form method="POST" novalidate>
+                        {{ form.csrf_token }}
+                        <!-- Overall Rating -->
+                        <div class="mb-4">
+                            <label class="form-label"><strong>Overall Rating *</strong></label>
+                            <div class="rating-input">
+                                {% for value, label in form.rating.choices %}
+                                <input type="radio" name="{{ form.rating.name }}" value="{{ value }}" id="rating{{ value }}" 
+                                       {% if form.rating.data == value %}checked{% endif %} required>
+                                <label for="rating{{ value }}" class="rating-star">
+                                    <i class="fas fa-star"></i>
+                                    <span class="rating-text">{{ label }}</span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                            {% if form.rating.errors %}
+                                <div class="text-danger small">{{ form.rating.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Detailed Ratings -->
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <label class="form-label">Data Quality</label>
+                                {{ form.quality(class="form-select") }}
+                                {% if form.quality.errors %}
+                                    <div class="text-danger small">{{ form.quality.errors[0] }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Usefulness</label>
+                                {{ form.usefulness(class="form-select") }}
+                                {% if form.usefulness.errors %}
+                                    <div class="text-danger small">{{ form.usefulness.errors[0] }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Satisfaction</label>
+                                {{ form.satisfaction(class="form-select") }}
+                                {% if form.satisfaction.errors %}
+                                    <div class="text-danger small">{{ form.satisfaction.errors[0] }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Comment -->
+                        <div class="mb-4">
+                            <label for="{{ form.comment.id }}" class="form-label">Your Review (Optional)</label>
+                            {{ form.comment(class="form-control", rows="4", placeholder="Share your experience with this dataset...") }}
+                            {% if form.comment.errors %}
+                                <div class="text-danger small">{{ form.comment.errors[0] }}</div>
+                            {% endif %}
+                            <div class="form-text">Help others by sharing what you liked or didn't like about this dataset.</div>
+                        </div>
+
+                        <!-- Feedback Type -->
+                        <div class="mb-4">
+                            <label class="form-label">Feedback Type</label>
+                            <div class="row">
+                                {% for value, label in form.feedback_type.choices %}
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="{{ form.feedback_type.name }}" value="{{ value }}" id="type_{{ value }}"
+                                               {% if form.feedback_type.data == value %}checked{% endif %}>
+                                        <label class="form-check-label" for="type_{{ value }}">{{ label }}</label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% if form.feedback_type.errors %}
+                                <div class="text-danger small">{{ form.feedback_type.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Anonymous Option -->
+                        <div class="mb-4">
+                            <div class="form-check">
+                                {{ form.is_anonymous(class="form-check-input", id="is_anonymous") }}
+                                <label class="form-check-label" for="is_anonymous">
+                                    Submit anonymously
+                                </label>
+                                <div class="form-text">Your username will not be displayed with this feedback.</div>
+                            </div>
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('datasets.metadata', dataset_id=dataset.id) }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Cancel
+                            </a>
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+.rating-input {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.rating-input input[type="radio"] {
+    display: none;
+}
+
+.rating-star {
+    cursor: pointer;
+    color: #ddd;
+    font-size: 1.5rem;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.rating-star:hover,
+.rating-star:hover ~ .rating-star {
+    color: #ffc107;
+}
+
+.rating-input input[type="radio"]:checked ~ .rating-star {
+    color: #ffc107;
+}
+
+.rating-text {
+    font-size: 0.9rem;
+    font-weight: normal;
+}
+
+@media (max-width: 768px) {
+    .rating-input {
+        flex-direction: column;
+    }
+    
+    .rating-star {
+        justify-content: flex-start;
+    }
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Rating interaction
+    const ratingInputs = document.querySelectorAll('input[name="rating"]');
+    const ratingStars = document.querySelectorAll('.rating-star');
+    
+    ratingInputs.forEach((input, index) => {
+        input.addEventListener('change', function() {
+            updateStarDisplay();
+        });
+    });
+    
+    function updateStarDisplay() {
+        const checkedRating = document.querySelector('input[name="rating"]:checked');
+        if (checkedRating) {
+            const rating = parseInt(checkedRating.value);
+            ratingStars.forEach((star, index) => {
+                if (index < rating) {
+                    star.style.color = '#ffc107';
+                } else {
+                    star.style.color = '#ddd';
+                }
+            });
+        }
+    }
+    
+    // Initialize star display
+    updateStarDisplay();
+});
+</script>
+{% endblock %}

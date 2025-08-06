@@ -49,6 +49,57 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 
+# Project specific
+uploads/
+temp/
+app/cache/
+instance/
+*.db
+*.sqlite
+*.log
+
+# Model files and caches (these will be downloaded during setup)
+flan-t5-base/
+nltk_data/
+*.model
+*.safetensors
+*.bin
+*.pkl
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# MongoDB
+data/db/
+
+# Redis
+dump.rdb
+*.rdb
+
+# Large data files
+test_data/
+*.csv
+*.xlsx
+*.xls
+*.zip
+*.txt
+!requirements.txt
+!english_stopwords.txt
+!sentence_patterns.txt
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Virtual Environment
+venv/
+ENV/
+
 # Translations
 *.mo
 *.pot
@@ -130,6 +181,22 @@ app/cache/
 *.db
 *.sqlite
 *.sqlite3
+
+# Large model files
+flan-t5-base/
+*.safetensors
+*.bin
+*.pt
+*.pth
+model.*/
+
+# Environment and local settings
+.env
+.env.*
+!.env.advanced_nlp
+instance/
+logs/
+*.log
 
 # IDE
 .vscode/

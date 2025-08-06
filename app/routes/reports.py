@@ -64,7 +64,7 @@ def view_report(dataset_id):
                 directory,
                 filename,
                 as_attachment=True,
-                attachment_filename=f"health_report_{dataset.title}_{filename}"
+                download_name=f"health_report_{dataset.title}_{filename}"
             )
 
     except Exception as e:
@@ -173,7 +173,7 @@ def download_report(dataset_id):
         return send_file(
             file_path,
             as_attachment=True,
-            attachment_filename=download_filename,
+            download_name=download_filename,
             mimetype='text/html' if report_format == 'html' else 'application/pdf'
         )
     except Exception as e:

@@ -9,6 +9,7 @@ from datetime import datetime
 from werkzeug.utils import secure_filename
 from app.models.dataset import Dataset
 from app.models.metadata import ProcessingQueue
+from app.utils.file_utils import extract_zip_file, validate_zip_contents, generate_collection_title
 
 logger = logging.getLogger(__name__)
 
@@ -30,30 +31,69 @@ class DatasetService:
             return None
 
         try:
-            # Create a unique filename
-            filename = secure_filename(os.path.basename(url))
+            import requests
+            from urllib.parse import urlparse, unquote
+
+            # Parse URL to get filename
+            parsed_url = urlparse(url)
+            filename = os.path.basename(unquote(parsed_url.path))
+
+            # If no filename in URL, generate one
+            if not filename or '.' not in filename:
+                filename = f"dataset_{datetime.now().strftime('%Y%m%d%H%M%S')}.csv"
+
+            # Ensure filename is secure
+            filename = secure_filename(filename)
             timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
             local_path = os.path.join(self.tempdir, f"{timestamp}_{filename}")
 
-            # Download file
-            urllib.request.urlretrieve(url, local_path)
+            # Download file with better error handling
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            }
 
-            # Determine format from extension
-            format = os.path.splitext(filename)[1][1:].lower() or 'unknown'
+            response = requests.get(url, headers=headers, timeout=30, stream=True)
+            response.raise_for_status()
+
+            # Write file in chunks
+            with open(local_path, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    if chunk:
+                        f.write(chunk)
+
+            # Determine format from extension or content type
+            format = os.path.splitext(filename)[1][1:].lower()
+            if not format:
+                content_type = response.headers.get('content-type', '').lower()
+                if 'csv' in content_type:
+                    format = 'csv'
+                elif 'json' in content_type:
+                    format = 'json'
+                elif 'xml' in content_type:
+                    format = 'xml'
+                else:
+                    format = 'unknown'
 
             # Get file size
             size = os.path.getsize(local_path)
 
+            print(f"✅ Successfully fetched dataset from URL: {url}")
+            print(f"   Local path: {local_path}")
+            print(f"   Format: {format}")
+            print(f"   Size: {size} bytes")
+
             return {
                 'path': local_path,
                 'format': format,
-                'size': size
+                'size': size,
+                'original_url': url,
+                'filename': filename
             }
         except Exception as e:
-            print(f"Error fetching dataset: {str(e)}")
+            print(f"❌ Error fetching dataset from URL {url}: {str(e)}")
             return None
 
-    def process_dataset(self, file_info, format_hint=None):
+    def process_dataset(self, file_info, format_hint=None, process_full_dataset=True):
         """Process a dataset file to extract information and structure"""
         if not file_info or not os.path.exists(file_info['path']):
             return None
@@ -62,21 +102,25 @@ class DatasetService:
             # Determine format
             format = format_hint or file_info['format']
 
-            # Process according to format
+            # Process according to format with full dataset option
             if format in ['csv', 'tsv', 'txt']:
-                return self._process_csv(file_info['path'])
+                return self._process_csv(file_info['path'], process_full_dataset)
+            elif format in ['xlsx', 'xls']:
+                return self._process_excel(file_info['path'], process_full_dataset)
             elif format in ['json']:
-                return self._process_json(file_info['path'])
+                return self._process_json(file_info['path'], process_full_dataset)
             elif format in ['xml']:
                 return self._process_xml(file_info['path'])
+            elif format == 'zip':
+                return self._process_zip(file_info['path'])
             else:
                 return self._process_generic_file(file_info['path'])
         except Exception as e:
             print(f"Error processing dataset: {str(e)}")
             return None
 
-    def _process_csv(self, file_path):
-        """Process a CSV file to extract schema and sample data"""
+    def _process_csv(self, file_path, process_full_dataset=True):
+        """Process a CSV file to extract schema and full dataset or sample data"""
         try:
             # Try to detect delimiter with multiple approaches
             delimiter = ','  # Default
@@ -99,28 +143,61 @@ class DatasetService:
             except Exception:
                 pass  # Keep the delimiter we found above
 
-            # Read sample data with pandas for schema analysis
-            df_sample = pd.read_csv(file_path, sep=delimiter, nrows=100, encoding='utf-8')
-
-            # Count total rows efficiently without loading all data
+            # Count total rows efficiently
             total_rows = self._count_csv_rows(file_path, delimiter)
 
-            # Extract schema
+            # Decide whether to process full dataset or sample based on size
+            if process_full_dataset and total_rows <= 10000:  # Process full dataset for reasonable sizes
+                print(f"Processing full dataset with {total_rows} records")
+                df = pd.read_csv(file_path, sep=delimiter, encoding='utf-8')
+                df_sample = df.head(100)  # Keep sample for quick schema analysis
+            elif process_full_dataset and total_rows > 10000:  # For very large datasets, use chunked processing
+                print(f"Processing large dataset with {total_rows} records using chunked approach")
+                df = pd.read_csv(file_path, sep=delimiter, encoding='utf-8', nrows=5000)  # Process first 5000 rows
+                df_sample = df.head(100)
+            else:  # Sample-only processing (legacy mode)
+                print(f"Processing sample of dataset with {total_rows} total records")
+                df = pd.read_csv(file_path, sep=delimiter, nrows=100, encoding='utf-8')
+                df_sample = df
+
+            # Extract comprehensive schema from sample
             schema = {}
             for col in df_sample.columns:
                 dtype = str(df_sample[col].dtype)
+
+                # Enhanced schema with statistics
+                col_data = df_sample[col].dropna()
                 schema[col] = {
                     'type': dtype,
-                    'sample_values': df_sample[col].dropna().head(5).tolist()
+                    'sample_values': col_data.head(5).tolist(),
+                    'null_count': df_sample[col].isnull().sum(),
+                    'unique_count': df_sample[col].nunique(),
+                    'data_type_inferred': self._infer_semantic_type(col, col_data)
                 }
 
-            return {
+            # Return full dataset information
+            result = {
                 'format': 'csv',
-                'columns': list(df_sample.columns),
+                'columns': list(df.columns),
                 'schema': schema,
                 'record_count': total_rows,
-                'sample_data': df_sample.head(10).to_dict(orient='records')
+                'processed_records': len(df),
+                'full_data': df.to_dict(orient='records') if len(df) <= 1000 else None,  # Include full data for small datasets
+                'sample_data': df_sample.head(10).to_dict(orient='records'),
+                'processing_mode': 'full' if process_full_dataset else 'sample',
+                'data_summary': {
+                    'total_rows': total_rows,
+                    'total_columns': len(df.columns),
+                    'processed_rows': len(df),
+                    'memory_usage_mb': round(df.memory_usage(deep=True).sum() / 1024 / 1024, 2)
+                }
             }
+
+            # Add full dataset DataFrame for processing if reasonable size
+            if len(df) <= 5000:
+                result['dataframe'] = df
+
+            return result
         except Exception as e:
             print(f"Error processing CSV: {str(e)}")
             # Try fallback processing with different encodings and delimiters
@@ -223,50 +300,301 @@ class DatasetService:
             print(f"Error counting CSV rows with encoding {encoding}: {e}")
             return 0
 
-    def _process_json(self, file_path):
-        """Process a JSON file to extract schema and sample data"""
+    def _infer_semantic_type(self, column_name, data):
+        """Infer semantic type of column based on name and data patterns."""
+        column_lower = column_name.lower()
+
+        # Check for common semantic types
+        if any(word in column_lower for word in ['id', 'identifier']):
+            return 'identifier'
+        elif any(word in column_lower for word in ['name', 'title', 'description']):
+            return 'text'
+        elif any(word in column_lower for word in ['email', 'mail']):
+            return 'email'
+        elif any(word in column_lower for word in ['url', 'link', 'website']):
+            return 'url'
+        elif any(word in column_lower for word in ['date', 'time', 'timestamp']):
+            return 'datetime'
+        elif any(word in column_lower for word in ['price', 'cost', 'amount', 'value']):
+            return 'currency'
+        elif any(word in column_lower for word in ['count', 'number', 'quantity']):
+            return 'numeric'
+        elif any(word in column_lower for word in ['category', 'type', 'class']):
+            return 'categorical'
+        else:
+            # Infer from data patterns
+            if data.dtype in ['int64', 'float64']:
+                return 'numeric'
+            elif data.dtype == 'object':
+                return 'text'
+            else:
+                return 'unknown'
+
+    def _process_excel(self, file_path: str, process_full_dataset: bool = False):
+        """Process Excel files (XLSX, XLS) with comprehensive analysis"""
         try:
+            print(f"🔄 Processing Excel file: {file_path}")
+
+            # Read Excel file - try to get all sheets
+            excel_file = pd.ExcelFile(file_path)
+            sheet_names = excel_file.sheet_names
+
+            print(f"📊 Found {len(sheet_names)} sheet(s): {sheet_names}")
+
+            # Process the first sheet or largest sheet
+            main_sheet = sheet_names[0]
+            if len(sheet_names) > 1:
+                # Find the sheet with most data
+                sheet_sizes = {}
+                for sheet in sheet_names:
+                    try:
+                        temp_df = pd.read_excel(file_path, sheet_name=sheet, nrows=1)
+                        full_df = pd.read_excel(file_path, sheet_name=sheet)
+                        sheet_sizes[sheet] = len(full_df)
+                    except:
+                        sheet_sizes[sheet] = 0
+
+                main_sheet = max(sheet_sizes, key=sheet_sizes.get)
+                print(f"📈 Using main sheet: {main_sheet} with {sheet_sizes[main_sheet]} rows")
+
+            # Read the main sheet
+            if process_full_dataset:
+                df = pd.read_excel(file_path, sheet_name=main_sheet)
+                df_sample = df.head(100)
+                print(f"📊 Processing full Excel dataset with {len(df)} records")
+            else:
+                df_sample = pd.read_excel(file_path, sheet_name=main_sheet, nrows=100)
+                df = pd.read_excel(file_path, sheet_name=main_sheet)  # Get full for count
+                print(f"📊 Processing Excel sample with {len(df_sample)} records from {len(df)} total")
+
+            # Extract schema information
+            schema = {}
+            for col in df.columns:
+                dtype = str(df[col].dtype)
+                non_null_values = df[col].dropna()
+                schema[col] = {
+                    'type': dtype,
+                    'sample_values': non_null_values.head(3).tolist(),
+                    'null_count': df[col].isnull().sum(),
+                    'unique_count': df[col].nunique()
+                }
+
+            # Prepare result
+            result = {
+                'format': 'excel',
+                'file_type': file_path.split('.')[-1].upper(),
+                'sheet_names': sheet_names,
+                'main_sheet': main_sheet,
+                'columns': list(df.columns),
+                'schema': schema,
+                'record_count': len(df),
+                'processed_records': len(df) if process_full_dataset else len(df_sample),
+                'sample_data': df_sample.head(10).to_dict(orient='records'),
+                'processing_mode': 'full' if process_full_dataset else 'sample',
+                'data_summary': {
+                    'total_rows': len(df),
+                    'total_columns': len(df.columns),
+                    'total_sheets': len(sheet_names),
+                    'memory_usage_mb': round(df.memory_usage(deep=True).sum() / 1024 / 1024, 2)
+                }
+            }
+
+            # Add full dataset for processing if reasonable size
+            if process_full_dataset and len(df) <= 5000:
+                result['dataframe'] = df
+                result['full_data'] = df.to_dict(orient='records') if len(df) <= 1000 else None
+
+            # Add text content for NLP analysis
+            text_content = self._extract_excel_text_content(df_sample)
+            if text_content:
+                result['text_content'] = text_content
+
+            print(f"✅ Excel processing completed: {len(df)} records, {len(df.columns)} columns")
+            return result
+
+        except Exception as e:
+            print(f"❌ Error processing Excel file: {str(e)}")
+            return {
+                'format': 'excel',
+                'error': f"Excel processing failed: {str(e)}",
+                'summary': 'Failed to process Excel file',
+                'record_count': 0,
+                'schema': {}
+            }
+
+    def _extract_excel_text_content(self, df: pd.DataFrame) -> str:
+        """Extract text content from Excel DataFrame for NLP analysis"""
+        try:
+            text_parts = []
+
+            # Extract text from string columns
+            for col in df.columns:
+                if df[col].dtype == 'object':  # Likely text column
+                    text_values = df[col].dropna().astype(str).tolist()
+                    # Filter out numeric-looking strings
+                    text_values = [val for val in text_values if not val.replace('.', '').replace('-', '').isdigit()]
+                    if text_values:
+                        text_parts.extend(text_values[:20])  # Limit to first 20 values per column
+
+            return ' '.join(text_parts) if text_parts else ""
+        except Exception as e:
+            print(f"⚠️ Error extracting Excel text content: {e}")
+            return ""
+
+    def _process_json(self, file_path: str, process_full_dataset: bool = False):
+        """Process a JSON file to extract schema and sample data with enhanced NLP support"""
+        try:
+            print(f"🔄 Processing JSON file: {file_path}")
+
             with open(file_path, 'r', encoding='utf-8') as file:
                 data = json.load(file)
 
             # If it's a list of records
             if isinstance(data, list) and len(data) > 0:
-                # Extract a sample
-                sample = data[:10]
+                print(f"📊 Processing JSON array with {len(data)} records")
 
-                # Extract schema from first item
-                first_item = data[0]
+                # Determine processing scope
+                if process_full_dataset and len(data) <= 10000:
+                    processed_data = data
+                    sample_data = data[:10]
+                    print(f"📊 Processing full JSON dataset with {len(data)} records")
+                elif process_full_dataset and len(data) > 10000:
+                    processed_data = data[:5000]  # Process first 5000 for large datasets
+                    sample_data = data[:10]
+                    print(f"📊 Processing large JSON dataset: first 5000 of {len(data)} records")
+                else:
+                    processed_data = data[:100]  # Sample processing
+                    sample_data = data[:10]
+                    print(f"📊 Processing JSON sample: {len(processed_data)} records from {len(data)} total")
+
+                # Extract schema from multiple items for better accuracy
                 schema = {}
+                first_item = data[0]
 
                 if isinstance(first_item, dict):
-                    for key, value in first_item.items():
-                        schema[key] = {
-                            'type': type(value).__name__,
-                            'sample_values': [item.get(key) for item in sample[:5] if item.get(key) is not None]
-                        }
+                    # Analyze schema from multiple records
+                    for key in first_item.keys():
+                        values = [item.get(key) for item in processed_data[:20] if item.get(key) is not None]
+                        if values:
+                            value_types = list(set([type(v).__name__ for v in values]))
+                            schema[key] = {
+                                'type': value_types[0] if len(value_types) == 1 else 'mixed',
+                                'sample_values': values[:5],
+                                'null_count': sum(1 for item in processed_data if item.get(key) is None),
+                                'unique_count': len(set(str(v) for v in values))
+                            }
 
-                return {
+                # Extract text content for NLP analysis
+                text_content = self._extract_json_text_content(processed_data)
+
+                result = {
                     'format': 'json',
                     'record_count': len(data),
+                    'processed_records': len(processed_data),
                     'is_array': True,
                     'schema': schema,
-                    'sample_data': sample
+                    'sample_data': sample_data,
+                    'processing_mode': 'full' if process_full_dataset else 'sample',
+                    'data_summary': {
+                        'total_records': len(data),
+                        'processed_records': len(processed_data),
+                        'total_fields': len(schema),
+                        'structure_type': 'array_of_objects'
+                    }
                 }
+
+                # Add text content for NLP
+                if text_content:
+                    result['text_content'] = text_content
+
+                # Add full data for small datasets
+                if process_full_dataset and len(data) <= 1000:
+                    result['full_data'] = data
+
+                return result
             else:
                 # Treat as a single object
-                return {
+                print("📊 Processing JSON as single object")
+                text_content = self._extract_json_text_content([data] if isinstance(data, dict) else data)
+
+                result = {
                     'format': 'json',
                     'is_array': False,
                     'structure': self._get_json_structure(data),
-                    'sample_data': data
+                    'sample_data': data,
+                    'record_count': 1,
+                    'data_summary': {
+                        'structure_type': 'single_object',
+                        'complexity': self._calculate_json_complexity(data)
+                    }
                 }
+
+                if text_content:
+                    result['text_content'] = text_content
+
+                return result
         except Exception as e:
-            print(f"Error processing JSON: {str(e)}")
+            print(f"❌ Error processing JSON: {str(e)}")
             return {
                 'format': 'json',
                 'error': str(e),
-                'summary': 'Failed to process JSON file'
+                'summary': 'Failed to process JSON file',
+                'record_count': 0,
+                'schema': {}
             }
+
+    def _extract_json_text_content(self, data) -> str:
+        """Extract text content from JSON data for NLP analysis"""
+        try:
+            text_parts = []
+
+            if isinstance(data, list):
+                # Process list of objects
+                for item in data[:50]:  # Limit to first 50 items
+                    if isinstance(item, dict):
+                        for key, value in item.items():
+                            if isinstance(value, str) and len(value) > 3:
+                                # Filter out IDs, codes, and numeric strings
+                                if not value.replace('-', '').replace('_', '').isalnum() or len(value) > 10:
+                                    text_parts.append(value)
+                    elif isinstance(item, str) and len(item) > 3:
+                        text_parts.append(item)
+            elif isinstance(data, dict):
+                # Process single object
+                for key, value in data.items():
+                    if isinstance(value, str) and len(value) > 3:
+                        text_parts.append(value)
+                    elif isinstance(value, list):
+                        for sub_item in value[:10]:  # Limit sub-items
+                            if isinstance(sub_item, str) and len(sub_item) > 3:
+                                text_parts.append(sub_item)
+
+            return ' '.join(text_parts[:100]) if text_parts else ""  # Limit total text
+        except Exception as e:
+            print(f"⚠️ Error extracting JSON text content: {e}")
+            return ""
+
+    def _calculate_json_complexity(self, data, max_depth=5, current_depth=0) -> int:
+        """Calculate complexity score for JSON structure"""
+        try:
+            if current_depth >= max_depth:
+                return 1
+
+            complexity = 0
+            if isinstance(data, dict):
+                complexity += len(data)
+                for value in data.values():
+                    complexity += self._calculate_json_complexity(value, max_depth, current_depth + 1)
+            elif isinstance(data, list):
+                complexity += len(data)
+                if data:
+                    complexity += self._calculate_json_complexity(data[0], max_depth, current_depth + 1)
+            else:
+                complexity = 1
+
+            return min(complexity, 1000)  # Cap complexity score
+        except:
+            return 1
 
     def _get_json_structure(self, data, max_depth=3, current_depth=0):
         """Recursively analyze JSON structure"""
@@ -519,6 +847,75 @@ class DatasetService:
             return False
 
     # Note: Search functionality removed - uses SQLAlchemy which is not compatible with MongoDB
+
+    def _process_zip(self, file_path):
+        """Process a ZIP file containing multiple datasets"""
+        try:
+            # First validate the zip file
+            is_valid, error_msg, zip_info = validate_zip_contents(file_path)
+            if not is_valid:
+                return {
+                    'format': 'zip',
+                    'error': error_msg,
+                    'summary': 'Invalid ZIP file'
+                }
+
+            # Extract the zip file
+            success, extract_dir, extracted_files = extract_zip_file(file_path)
+            if not success:
+                return {
+                    'format': 'zip',
+                    'error': f"Failed to extract ZIP file: {extract_dir}",
+                    'summary': 'ZIP extraction failed'
+                }
+
+            # Process each extracted dataset file
+            processed_files = []
+            for file_info in extracted_files:
+                if file_info.get('is_dataset', False):
+                    try:
+                        # Create file info structure for processing
+                        dataset_file_info = {
+                            'path': file_info['path'],
+                            'format': file_info['extension'],
+                            'size': file_info['size']
+                        }
+
+                        # Process the individual file
+                        processed_data = self.process_dataset(dataset_file_info, process_full_dataset=False)
+                        if processed_data:
+                            processed_data['original_filename'] = file_info['original_name']
+                            processed_data['extracted_path'] = file_info['path']
+                            processed_files.append(processed_data)
+                    except Exception as e:
+                        print(f"Error processing file {file_info['original_name']}: {e}")
+                        continue
+
+            # Generate collection title
+            file_names = [f['original_name'] for f in extracted_files if f.get('is_dataset', False)]
+            collection_title = generate_collection_title(file_names)
+
+            return {
+                'format': 'zip',
+                'is_collection': True,
+                'collection_title': collection_title,
+                'total_files': zip_info['total_files'],
+                'dataset_files': zip_info['dataset_files'],
+                'total_size': zip_info['total_size'],
+                'file_types': zip_info['file_types'],
+                'extracted_directory': extract_dir,
+                'processed_files': processed_files,
+                'file_list': zip_info['dataset_files_list'],
+                'summary': f"ZIP collection with {len(processed_files)} processed datasets"
+            }
+
+        except Exception as e:
+            print(f"Error processing ZIP file: {str(e)}")
+            return {
+                'format': 'zip',
+                'error': str(e),
+                'summary': 'Failed to process ZIP file'
+            }
 
 
 # Global service instance factory

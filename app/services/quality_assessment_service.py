@@ -128,8 +128,9 @@ class QualityAssessmentService:
             # Calculate FAIR compliance
             fair_score, fair_details = conformity_scorer._calculate_fair_compliance(dataset)
 
-            # Determine if FAIR compliant (minimum threshold of 70%)
+            # Determine FAIR compliance status with more nuanced thresholds
             fair_compliant = fair_score >= 70.0
+            fair_status = self._determine_fair_status(fair_score)
 
             # Update metadata quality record
             metadata_quality.update(
@@ -137,13 +138,15 @@ class QualityAssessmentService:
                 accessible_score=fair_details['accessible'],
                 interoperable_score=fair_details['interoperable'],
                 reusable_score=fair_details['reusable'],
-                fair_compliant=fair_compliant
+                fair_compliant=fair_compliant,
+                fair_status=fair_status
             )
 
             return {
                 'fair_score': fair_score,
                 'fair_details': fair_details,
-                'fair_compliant': fair_compliant
+                'fair_compliant': fair_compliant,
+                'fair_status': fair_status
             }
 
         except Exception as e:
@@ -286,6 +289,23 @@ class QualityAssessmentService:
             return []
 
         return metadata_quality.issues_list
+
+    def _determine_fair_status(self, fair_score: float) -> str:
+        """
+        Determine FAIR compliance status based on score.
+
+        Args:
+            fair_score: FAIR compliance score (0-100)
+
+        Returns:
+            Status string: 'compliant', 'partially_compliant', or 'not_compliant'
+        """
+        if fair_score >= 80.0:
+            return 'compliant'
+        elif fair_score >= 50.0:
+            return 'partially_compliant'
+        else:
+            return 'not_compliant'
 
 
 # Singleton instance for application-wide use

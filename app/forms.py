@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
-from wtforms import StringField, TextAreaField, PasswordField, BooleanField, SubmitField, SelectField
-from wtforms.validators import DataRequired, Email, Length, EqualTo, URL, Optional
+from wtforms import StringField, TextAreaField, PasswordField, BooleanField, SubmitField, SelectField, RadioField
+from wtforms.validators import DataRequired, Email, Length, EqualTo, URL, Optional, NumberRange
 from app.models.user import User
 
 class LoginForm(FlaskForm):
@@ -30,41 +30,52 @@ class RegistrationForm(FlaskForm):
             raise ValidationError('Email already registered.')
 
 class DatasetForm(FlaskForm):
-    """Form for dataset creation or editing"""
-    title = StringField('Title', validators=[DataRequired(), Length(max=255)])
-    description = TextAreaField('Description', validators=[Optional(), Length(max=2000)])
+    """Form for dataset creation or editing with enhanced automatic field extraction"""
+    title = StringField('Title (auto-generated if not provided)', validators=[Optional(), Length(max=255)])
+    description = TextAreaField('Description (auto-generated if not provided)', validators=[Optional(), Length(max=2000)])
 
     # File upload field
     dataset_file = FileField('Upload Dataset File', validators=[
-        FileAllowed(['csv', 'json', 'xml', 'txt', 'tsv', 'xlsx', 'xls'],
-                   'Only CSV, JSON, XML, TXT, TSV, and Excel files are allowed!')
+        FileAllowed(['csv', 'json', 'xml', 'txt', 'tsv', 'xlsx', 'xls', 'zip'],
+                   'Only CSV, JSON, XML, TXT, TSV, Excel, and ZIP files are allowed!')
     ])
 
     # Alternative URL field
     source_url = StringField('Or Dataset URL', validators=[Optional(), URL()])
 
-    source = StringField('Source', validators=[Optional(), Length(max=128)])
-    data_type = SelectField('Data Type', choices=[
-        ('', 'Select Data Type'),
+    source = StringField('Source (auto-detected if not provided)', validators=[Optional(), Length(max=128)])
+    data_type = SelectField('Data Type (auto-detected if not provided)', choices=[
+        ('', 'Auto-detect Data Type'),
         ('tabular', 'Tabular Data'),
         ('text', 'Textual Data'),
         ('image', 'Image Data'),
         ('time_series', 'Time Series'),
         ('geo', 'Geospatial Data'),
-        ('mixed', 'Mixed Data Types')
+        ('mixed', 'Mixed Data Types'),
+        ('collection', 'Dataset Collection')
     ], validators=[Optional()])
-    category = SelectField('Category', choices=[
-        ('', 'Select Category'),
+    category = SelectField('Category (auto-detected if not provided)', choices=[
+        ('', 'Auto-detect Category'),
         ('education', 'Education'),
         ('health', 'Health'),
         ('agriculture', 'Agriculture'),
         ('environment', 'Environment'),
         ('social_science', 'Social Science'),
         ('economics', 'Economics'),
+        ('finance', 'Finance'),
+        ('retail', 'Retail'),
+        ('technology', 'Technology'),
+        ('government', 'Government'),
+        ('research', 'Research'),
         ('other', 'Other')
     ], validators=[Optional()])
-    tags = StringField('Tags (comma separated)', validators=[Optional(), Length(max=255)])
-    submit = SubmitField('Submit')
+    tags = StringField('Tags (auto-generated if not provided)', validators=[Optional(), Length(max=500)])
+
+    # Additional optional fields for better metadata
+    license = StringField('License (auto-detected if not provided)', validators=[Optional(), Length(max=255)])
+    author = StringField('Author/Publisher (defaults to uploader)', validators=[Optional(), Length(max=255)])
+
+    submit = SubmitField('Upload & Process Dataset')
 
 class SearchForm(FlaskForm):
     """Form for dataset search"""
@@ -92,3 +103,18 @@ class SearchForm(FlaskForm):
 
 # Import ValidationError after it is used to avoid circular import
 from wtforms.validators import ValidationError
+
+
+class FixQueueForm(FlaskForm):
+    """Simple form for fixing stuck queue items"""
+    submit = SubmitField('Fix Stuck Items')
+
+class FeedbackForm(FlaskForm):
+    rating = RadioField('Overall Rating', choices=[('1', '1 Star'), ('2', '2 Stars'), ('3', '3 Stars'), ('4', '4 Stars'), ('5', '5 Stars')], validators=[DataRequired()])
+    satisfaction = SelectField('Satisfaction', choices=[('', 'Select...'), ('1', 'Very Dissatisfied'), ('2', 'Dissatisfied'), ('3', 'Neutral'), ('4', 'Satisfied'), ('5', 'Very Satisfied')], validators=[Optional()])
+    usefulness = SelectField('Usefulness', choices=[('', 'Select...'), ('1', 'Not Useful'), ('2', 'Slightly Useful'), ('3', 'Moderately Useful'), ('4', 'Very Useful'), ('5', 'Extremely Useful')], validators=[Optional()])
+    quality = SelectField('Data Quality', choices=[('', 'Select...'), ('1', 'Poor'), ('2', 'Fair'), ('3', 'Good'), ('4', 'Very Good'), ('5', 'Excellent')], validators=[Optional()])
+    comment = TextAreaField('Your Review', validators=[Optional(), Length(max=2000)])
+    feedback_type = RadioField('Feedback Type', choices=[('rating', 'Rating'), ('comment', 'Review'), ('suggestion', 'Suggestion'), ('issue', 'Issue')], default='rating', validators=[DataRequired()])
+    is_anonymous = BooleanField('Submit anonymously')
+    submit = SubmitField('Submit Feedback')

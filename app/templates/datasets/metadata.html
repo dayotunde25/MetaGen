@@ -9,8 +9,9 @@
         overflow: hidden;
     }
     .metadata-content {
-        max-height: 600px;
-        overflow-y: auto;
+        min-height: auto;
+        max-height: none;
+        overflow-y: visible;
     }
     pre.json {
         background-color: #282c34;
@@ -65,6 +66,477 @@
         padding-bottom: 0.5rem;
         border-bottom: 1px solid #dee2e6;
     }
+
+    .stat-item {
+        padding: 1rem;
+        border-radius: 8px;
+        background: rgba(0,0,0,0.02);
+    }
+
+    .metric-box {
+        padding: 1rem;
+        border-radius: 8px;
+        background: rgba(0,0,0,0.03);
+        border: 1px solid rgba(0,0,0,0.1);
+    }
+
+    .compliance-item {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(0,0,0,0.1);
+    }
+
+    .compliance-item:last-child {
+        border-bottom: none;
+    }
+
+    .keywords-container, .tags-container {
+        min-height: auto;
+        max-height: none;
+        overflow-y: visible;
+    }
+
+    .field-names-container {
+        min-height: auto;
+        max-height: none;
+    }
+
+    /* Empty section handling */
+    .empty-tab-pane {
+        display: none !important;
+    }
+
+    .empty-tab-nav {
+        display: none !important;
+    }
+
+    .minimal-content {
+        display: none !important;
+    }
+
+    .empty-row {
+        display: none !important;
+    }
+
+    /* Ensure proper spacing when sections are hidden */
+    .tab-content {
+        min-height: 200px;
+    }
+
+    .tab-pane {
+        padding: 1rem 0;
+    }
+
+    /* Hide alert messages that indicate empty content */
+    .alert-info:has-text("will be available once"),
+    .alert-info:has-text("Pending"),
+    .alert-info:has-text("Not available") {
+        margin-bottom: 0;
+    }
+        overflow-y: visible;
+    }
+
+    /* Dynamic content sizing */
+    .content-adaptive {
+        height: auto !important;
+        min-height: auto !important;
+        max-height: none !important;
+    }
+
+    /* Responsive card heights */
+    .card-body {
+        padding: 1rem;
+        height: auto;
+    }
+
+    .card {
+        height: auto;
+        margin-bottom: 1rem;
+    }
+
+    /* Remove unnecessary spacing */
+    .row.mb-4:last-child {
+        margin-bottom: 0 !important;
+    }
+
+    .col-md-6:last-child .card,
+    .col-md-12:last-child .card {
+        margin-bottom: 0;
+    }
+
+    /* Fix blank spaces in cards */
+    .card-body {
+        padding: 1rem !important;
+    }
+
+    .card-body:empty {
+        display: none;
+    }
+
+    /* Hide empty cards completely */
+    .card:has(.card-body:empty) {
+        display: none;
+    }
+
+    /* Hide cards with only whitespace content */
+    .card-body:empty::before {
+        content: "";
+        display: none;
+    }
+
+    /* Ensure content fills available space */
+    .tab-pane {
+        min-height: auto;
+    }
+
+    .tab-pane .row:last-child {
+        margin-bottom: 0;
+    }
+
+    .tab-pane .col-md-12:last-child,
+    .tab-pane .col-md-6:last-child,
+    .tab-pane .col-md-4:last-child {
+        margin-bottom: 0;
+    }
+
+    /* Remove extra padding from last elements */
+    .card-body > *:last-child {
+        margin-bottom: 0 !important;
+    }
+
+    .alert:last-child {
+        margin-bottom: 0 !important;
+    }
+
+    /* Handle long dataset titles */
+    .dataset-title {
+        word-wrap: break-word;
+        word-break: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
+        max-width: 100%;
+    }
+
+    .dataset-title-container {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 100%;
+    }
+
+    .dataset-title-full {
+        white-space: normal;
+        word-wrap: break-word;
+    }
+
+    /* Content-adaptive sizing */
+    .content-adaptive {
+        min-height: auto !important;
+        height: auto !important;
+    }
+
+    .card.content-adaptive {
+        height: auto !important;
+        min-height: auto !important;
+    }
+
+    .card-body.content-adaptive {
+        padding: 1rem !important;
+        min-height: auto !important;
+        height: auto !important;
+    }
+
+    /* Remove excessive spacing */
+    .row.mb-4:last-child {
+        margin-bottom: 1rem !important;
+    }
+
+    .col-md-12:last-child .card,
+    .col-md-6:last-child .card,
+    .col-md-4:last-child .card {
+        margin-bottom: 0 !important;
+    }
+
+    /* Compact card spacing */
+    .card + .card {
+        margin-top: 1rem;
+    }
+
+    /* Ensure proper text wrapping in cards */
+    .card-body {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
+    }
+
+    /* Fix table cell overflow */
+    .table td {
+        word-wrap: break-word;
+        word-break: break-word;
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .table td.dataset-title {
+        max-width: 150px;
+    }
+
+    /* Remove excessive bottom margins */
+    .tab-pane .row:last-child {
+        margin-bottom: 0 !important;
+    }
+
+    .tab-pane .col-md-12:last-child,
+    .tab-pane .col-md-6:last-child,
+    .tab-pane .col-md-4:last-child {
+        margin-bottom: 0 !important;
+    }
+
+    /* Compact spacing for metadata sections */
+    .metadata-section {
+        margin-bottom: 1rem !important;
+    }
+
+    .metadata-section:last-child {
+        margin-bottom: 0 !important;
+    }
+
+    /* Ensure cards don't have excessive height */
+    .h-100 {
+        height: auto !important;
+        min-height: auto !important;
+    }
+
+    /* Better responsive behavior */
+    @media (max-width: 768px) {
+        .table td {
+            max-width: 120px;
+        }
+
+        .dataset-title {
+            font-size: 0.9rem;
+        }
+    }
+
+    /* Improve visualization cards */
+    .viz-type-card {
+        height: auto;
+        min-height: 120px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    /* Better spacing for health metrics */
+    .health-metric:last-child {
+        margin-bottom: 0 !important;
+    }
+
+    /* Improve FAIR assessment layout */
+    .fair-metric {
+        margin-bottom: 1rem;
+    }
+
+    .fair-metric:last-child {
+        margin-bottom: 0;
+    }
+
+    .data-type-item {
+        transition: all 0.3s ease;
+    }
+
+    .data-type-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .nlp-technique {
+        padding: 1rem;
+        border-radius: 8px;
+        background: rgba(0,0,0,0.02);
+        border: 1px solid rgba(0,0,0,0.1);
+    }
+
+    .quality-metric {
+        padding: 0.75rem 0;
+    }
+
+    .health-metric {
+        padding: 0.5rem;
+        border-radius: 6px;
+        background: rgba(0,0,0,0.02);
+    }
+
+    .viz-type-card {
+        transition: all 0.3s ease;
+        background: rgba(0,0,0,0.02);
+    }
+
+    .viz-type-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        background: rgba(0,0,0,0.05);
+    }
+
+    .text-purple {
+        color: #6f42c1 !important;
+    }
+
+    .bg-purple {
+        background-color: #6f42c1 !important;
+    }
+
+    .progress-bar.bg-purple {
+        background-color: #6f42c1 !important;
+    }
+
+    .issue-item, .recommendation-item {
+        transition: all 0.2s ease;
+    }
+
+    .issue-item:hover, .recommendation-item:hover {
+        background-color: rgba(0,0,0,0.08) !important;
+    }
+
+    /* Responsive layout improvements - prevent blank spaces */
+    .content-section {
+        min-height: auto !important;
+    }
+
+    .card-body-responsive {
+        padding: 1rem;
+    }
+
+    .card-body-responsive.empty-content {
+        padding: 0.5rem;
+        min-height: auto;
+    }
+
+    .description-content, .python-code-content {
+        margin-bottom: 0;
+    }
+
+    .empty-state {
+        padding: 1rem;
+        text-align: center;
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    .empty-state i {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        opacity: 0.5;
+    }
+
+    /* Compact empty sections */
+    .card.has-content {
+        margin-bottom: 1.5rem;
+    }
+
+    .card.no-content {
+        margin-bottom: 0.5rem;
+    }
+
+    .card.no-content .card-body {
+        padding: 0.75rem;
+    }
+
+    /* Rating section improvements */
+    .rating-stars i {
+        font-size: 1.2em;
+    }
+
+    .quick-rating button {
+        border: none;
+        background: none;
+        color: #ffc107;
+        font-size: 1.1em;
+        transition: all 0.2s ease;
+    }
+
+    .quick-rating button:hover {
+        transform: scale(1.2);
+        color: #ffb300;
+    }
+
+    /* Aggressive blank space removal */
+    .row.empty-row {
+        display: none !important;
+    }
+
+    .card.empty-card {
+        display: none !important;
+    }
+
+    .col-md-12.empty-col {
+        display: none !important;
+    }
+
+    /* Hide sections with no meaningful content */
+    .card-body:empty {
+        display: none !important;
+    }
+
+    .card:has(.card-body:empty) {
+        display: none !important;
+    }
+
+    /* Compact spacing for sections with minimal content */
+    .minimal-content {
+        margin-bottom: 0.5rem !important;
+    }
+
+    .minimal-content .card-body {
+        padding: 0.5rem !important;
+    }
+
+    @media (max-width: 768px) {
+        .card-body-responsive {
+            padding: 0.75rem;
+        }
+
+        .empty-state {
+            padding: 0.75rem;
+            font-size: 0.85rem;
+        }
+    }
+
+    /* Styles for handling empty sections and reducing blank spaces */
+    .empty-card, .minimal-content, .empty-section, .placeholder-content, .empty-container {
+        display: none !important;
+    }
+
+    .empty-row {
+        display: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Compact layout for sections with minimal content */
+    .card.has-minimal-content {
+        margin-bottom: 0.5rem !important;
+    }
+
+    .card.has-minimal-content .card-body {
+        padding: 0.75rem !important;
+    }
+
+    /* Hide empty state messages when not needed */
+    .empty-state {
+        display: none;
+    }
+
+    /* Responsive spacing adjustments */
+    .row.no-gutters {
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    .row.no-gutters > [class*="col-"] {
+        padding-left: 0;
+        padding-right: 0;
+    }
 </style>
 {% endblock %}
 
@@ -90,8 +562,23 @@
                         <a class="list-group-item list-group-item-action active" id="overview-tab" data-bs-toggle="list" href="#overview">
                             <i class="fas fa-info-circle me-2"></i>Overview
                         </a>
+                        <a class="list-group-item list-group-item-action" id="generated-metadata-tab" data-bs-toggle="list" href="#generated-metadata">
+                            <i class="fas fa-robot me-2"></i>Description Info
+                        </a>
+                        <a class="list-group-item list-group-item-action" id="data-structure-tab" data-bs-toggle="list" href="#data-structure">
+                            <i class="fas fa-table me-2"></i>Data Structure
+                        </a>
+                        <a class="list-group-item list-group-item-action" id="quality-report-tab" data-bs-toggle="list" href="#quality-report">
+                            <i class="fas fa-chart-line me-2"></i>Quality Report
+                        </a>
+                        <a class="list-group-item list-group-item-action" id="health-report-tab" data-bs-toggle="list" href="#health-report">
+                            <i class="fas fa-heartbeat me-2"></i>Health Report
+                        </a>
                         <a class="list-group-item list-group-item-action" id="fair-tab" data-bs-toggle="list" href="#fair">
-                            <i class="fas fa-check-circle me-2"></i>FAIR Assessment
+                            <i class="fas fa-balance-scale me-2"></i>FAIR Assessment
+                        </a>
+                        <a class="list-group-item list-group-item-action" id="visualizations-tab" data-bs-toggle="list" href="#visualizations">
+                            <i class="fas fa-chart-bar me-2"></i>Visualizations
                         </a>
                         <a class="list-group-item list-group-item-action" id="schema-tab" data-bs-toggle="list" href="#schema">
                             <i class="fas fa-code me-2"></i>Schema.org JSON-LD
@@ -124,74 +611,389 @@
         </div>
 
         <div class="col-lg-9">
-            <div class="card mb-4">
-                <div class="tab-content p-4">
+            <div class="card mb-4 content-adaptive">
+                <div class="tab-content p-4 content-adaptive">
                     <!-- Overview Tab -->
                     <div class="tab-pane fade show active" id="overview">
-                        <h3 class="metadata-heading">Metadata Overview</h3>
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h3 class="metadata-heading mb-0">
+                                <i class="fas fa-database me-2 text-primary"></i>
+                                {% if dataset.is_collection %}
+                                    Collection Metadata - Complete Overview
+                                {% else %}
+                                    Metadata Generation Framework - Complete Overview
+                                {% endif %}
+                            </h3>
+
+                            <!-- Export Buttons -->
+                            <div class="btn-group" role="group" aria-label="Export options">
+                                <a href="{{ url_for('datasets.export_metadata_markdown', dataset_id=dataset.id) }}"
+                                   class="btn btn-outline-primary btn-sm"
+                                   data-bs-toggle="tooltip"
+                                   title="Export metadata as Markdown file">
+                                    <i class="fab fa-markdown me-1"></i>
+                                    Markdown
+                                </a>
+                                <a href="{{ url_for('datasets.export_metadata_json', dataset_id=dataset.id) }}"
+                                   class="btn btn-outline-success btn-sm"
+                                   data-bs-toggle="tooltip"
+                                   title="Export metadata as JSON file">
+                                    <i class="fas fa-code me-1"></i>
+                                    JSON
+                                </a>
+                                <a href="{{ url_for('datasets.export_metadata_pdf', dataset_id=dataset.id) }}"
+                                   class="btn btn-outline-danger btn-sm"
+                                   data-bs-toggle="tooltip"
+                                   title="Export metadata as PDF file">
+                                    <i class="fas fa-file-pdf me-1"></i>
+                                    PDF
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info mb-4" style="background: linear-gradient(135deg, rgba(13, 110, 253, 0.8), rgba(13, 110, 253, 0.6)), url('{{ url_for('static', filename='images/metadata.webp') }}') center/cover no-repeat; border: none; color: white;">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-info-circle fa-2x me-3 text-white"></i>
+                                <div>
+                                    {% if dataset.is_collection %}
+                                        <h5 class="alert-heading mb-1 text-white"> Collection Analysis</h5>
+                                        <p class="mb-0 text-white">This comprehensive collection metadata was automatically generated by analyzing all datasets in the collection using advanced NLP techniques, cross-dataset relationship analysis, and aggregated quality assessment.</p>
+                                    {% else %}
+                                        <h5 class="alert-heading mb-1"> Metadata Generation</h5>
+                                        <p class="mb-0">This comprehensive metadata was automatically generated using advanced NLP techniques, quality assessment algorithms, and FAIR compliance standards.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
 
                         <div class="row mb-4">
-                            <div class="col-md-6">
-                                <div class="card h-100">
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 border-primary">
+                                    <div class="card-header bg-primary text-white">
+                                        <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Basic Information</h6>
+                                    </div>
                                     <div class="card-body">
-                                        <h5 class="card-title mb-3">Dataset Information</h5>
-                                        <table class="table table-sm">
+                                        <table class="table table-sm table-borderless" style="table-layout: fixed; width: 100%;">
                                             <tr>
-                                                <th style="width: 40%">Title:</th>
-                                                <td>{{ dataset.title }}</td>
+                                                <th style="width: 35%; vertical-align: top;">Title:</th>
+                                                <td class="dataset-title" title="{{ dataset.title }}" style="word-wrap: break-word; word-break: break-word; max-width: 0;">{{ dataset.title }}</td>
                                             </tr>
                                             <tr>
-                                                <th>Source:</th>
-                                                <td>{{ dataset.source or 'Not specified' }}</td>
+                                                <th style="width: 35%; vertical-align: top;">Source:</th>
+                                                <td style="word-wrap: break-word; word-break: break-word; max-width: 0;">{{ dataset.source or 'Not specified' }}</td>
                                             </tr>
                                             <tr>
-                                                <th>Category:</th>
-                                                <td>{{ dataset.category or 'Not specified' }}</td>
+                                                <th style="width: 35%; vertical-align: top;">Category:</th>
+                                                <td style="word-wrap: break-word; word-break: break-word; max-width: 0;">
+                                                    <span class="badge bg-secondary">{{ dataset.category or 'Not specified' }}</span>
+                                                </td>
                                             </tr>
                                             <tr>
-                                                <th>Data Type:</th>
-                                                <td>{{ dataset.data_type or 'Not specified' }}</td>
+                                                <th style="width: 35%; vertical-align: top;">Data Type:</th>
+                                                <td style="word-wrap: break-word; word-break: break-word; max-width: 0;">
+                                                    <span class="badge bg-info">{{ dataset.data_type or 'Not specified' }}</span>
+                                                </td>
                                             </tr>
                                             <tr>
-                                                <th>Format:</th>
-                                                <td>{{ dataset.format or 'Unknown' }}</td>
+                                                <th style="width: 35%; vertical-align: top;">Format:</th>
+                                                <td style="word-wrap: break-word; word-break: break-word; max-width: 0;">
+                                                    <span class="badge bg-success">{{ dataset.format or 'Unknown' }}</span>
+                                                </td>
                                             </tr>
                                             <tr>
-                                                <th>Record Count:</th>
-                                                <td>{{ dataset.record_count or 'Unknown' }}</td>
+                                                <th style="width: 35%; vertical-align: top;">License:</th>
+                                                <td style="word-wrap: break-word; word-break: break-word; max-width: 0;">{{ dataset.license or 'Not specified' }}</td>
                                             </tr>
                                         </table>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="card h-100">
+
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 border-success">
+                                    <div class="card-header bg-success text-white">
+                                        <h6 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Data Statistics</h6>
+                                    </div>
                                     <div class="card-body">
-                                        <h5 class="card-title mb-3">Metadata Quality</h5>
-                                        <div class="d-flex justify-content-between mb-2">
-                                            <span>Completeness:</span>
-                                            <span class="fw-medium">{{ metadata.completeness|int }}%</span>
-                                        </div>
-                                        <div class="progress mb-3" style="height: 6px;">
-                                            <div class="progress-bar" role="progressbar" style="width: {{ metadata.completeness }}%"></div>
+                                        <div class="row text-center">
+                                            <div class="col-6 mb-3">
+                                                <div class="stat-item">
+                                                    <h3 class="text-primary mb-1">{{ dataset.record_count if dataset.record_count else '...' }}</h3>
+                                                    <small class="text-muted">Records</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-6 mb-3">
+                                                <div class="stat-item">
+                                                    <h3 class="text-success mb-1">{{ dataset.field_count if dataset.field_count else '...' }}</h3>
+                                                    <small class="text-muted">Fields</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="stat-item">
+                                                    <h4 class="text-info mb-1">{{ metadata.quality_score|int }}%</h4>
+                                                    <small class="text-muted">Overall Quality Score</small>
+                                                </div>
+                                            </div>
                                         </div>
 
-                                        <div class="d-flex justify-content-between mb-2">
-                                            <span>Consistency:</span>
-                                            <span class="fw-medium">{{ metadata.consistency|int }}%</span>
+                                        {% if dataset.file_size %}
+                                        <div class="mt-3 pt-3 border-top">
+                                            <small class="text-muted">
+                                                <strong>File Size:</strong> {{ dataset.file_size }}
+                                            </small>
                                         </div>
-                                        <div class="progress mb-3" style="height: 6px;">
-                                            <div class="progress-bar" role="progressbar" style="width: {{ metadata.consistency }}%"></div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 border-warning">
+                                    <div class="card-header bg-warning text-dark">
+                                        <h6 class="mb-0"><i class="fas fa-check-circle me-2"></i>Compliance Status</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="compliance-item mb-3">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span>Schema.org Compliant:</span>
+                                                <span class="badge {{ 'bg-success' if metadata.schema_org_compliant else 'bg-danger' }}">
+                                                    {{ 'Yes' if metadata.schema_org_compliant else 'No' }}
+                                                </span>
+                                            </div>
                                         </div>
 
-                                        <div class="d-flex justify-content-between mt-4 mb-2">
-                                            <span>Schema.org Compliant:</span>
-                                            <span class="fw-medium">{{ 'Yes' if metadata.schema_org_compliant else 'No' }}</span>
+                                        <div class="compliance-item mb-3">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span>FAIR Score:</span>
+                                                <span class="badge {{ 'bg-success' if dataset.fair_score >= 75 else ('bg-warning' if dataset.fair_score >= 50 else 'bg-danger') }}">
+                                                    {{ dataset.fair_score|round(1) if dataset.fair_score else 0 }}%
+                                                </span>
+                                            </div>
                                         </div>
 
-                                        <div class="d-flex justify-content-between mb-2">
-                                            <span>FAIR Compliant:</span>
-                                            <span class="fw-medium">{{ 'Yes' if metadata.fair_compliant else 'No' }}</span>
+                                        <div class="compliance-item mb-3">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span>FAIR Compliant:</span>
+                                                {% set overall_fair_score = ((metadata.findable_score or 0) + (metadata.accessible_score or 0) + (metadata.interoperable_score or 0) + (metadata.reusable_score or 0)) / 4 if metadata else (dataset.fair_score or 0) %}
+                                                {% set fair_compliant = overall_fair_score >= 75 %}
+                                                <span class="badge {{ 'bg-success' if fair_compliant else 'bg-warning' }}">
+                                                    {{ 'Yes' if fair_compliant else 'Partial' }}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {% if dataset.persistent_identifier %}
+                                        <div class="compliance-item mb-3">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span>Persistent ID:</span>
+                                                <span class="badge bg-success">Assigned</span>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+
+                                        <div class="compliance-item">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span>Processing Status:</span>
+                                                <span class="badge {{ 'bg-success' if dataset.status == 'completed' else 'bg-warning' }}">
+                                                    {{ dataset.status|title }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Comprehensive Metadata Overview -->
+                        <div class="row mb-4">
+                            <!-- Generated Tags -->
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-header bg-warning text-dark">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-hashtag me-2"></i>
+                                            Generated Tags
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if dataset.tags %}
+                                        <div class="tags-container mb-3">
+                                            {% for tag in dataset.tags.split(',')[:15] %}
+                                            <span class="badge bg-warning text-dark me-1 mb-1">#{{ tag.strip() }}</span>
+                                            {% endfor %}
+                                        </div>
+                                        <small class="text-muted">
+                                            <strong>Total Tags:</strong> {{ dataset.tags.split(',')|length }}
+                                        </small>
+                                        {% else %}
+                                        <p class="text-muted">Tags will be automatically generated during processing.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Field Information -->
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-header bg-info text-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-table me-2"></i>
+                                            Field Information
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row text-center mb-3">
+                                            <div class="col-6">
+                                                <h4 class="text-info">{{ dataset.field_count or 'N/A' }}</h4>
+                                                <small>Total Fields</small>
+                                            </div>
+                                            <div class="col-6">
+                                                <h4 class="text-primary">{{ dataset.record_count or 'N/A' }}</h4>
+                                                <small>Records</small>
+                                            </div>
+                                        </div>
+                                        {% if dataset.field_names %}
+                                        <div class="field-preview">
+                                            <small class="text-muted d-block mb-2"><strong>Sample Fields:</strong></small>
+                                            {% for field in dataset.field_names.split(',')[:5] %}
+                                            <span class="badge bg-light text-dark me-1 mb-1">{{ field.strip() }}</span>
+                                            {% endfor %}
+                                            {% if dataset.field_names.split(',')|length > 5 %}
+                                            <span class="badge bg-secondary">+{{ dataset.field_names.split(',')|length - 5 }} more</span>
+                                            {% endif %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Data Types and Structure -->
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-header bg-success text-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-code me-2"></i>
+                                            Data Types & Structure
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <table class="table table-sm">
+                                            <tr>
+                                                <th>Format:</th>
+                                                <td><span class="badge bg-success">{{ dataset.format or 'Unknown' }}</span></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Encoding:</th>
+                                                <td>{{ dataset.encoding_format or 'UTF-8' }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Structure:</th>
+                                                <td>{{ dataset.data_type or 'Tabular' }}</td>
+                                            </tr>
+                                            {% if dataset.file_size %}
+                                            <tr>
+                                                <th>File Size:</th>
+                                                <td>{{ dataset.file_size }}</td>
+                                            </tr>
+                                            {% endif %}
+                                        </table>
+                                        {% if dataset.data_types %}
+                                        <div class="mt-3">
+                                            <small class="text-muted d-block mb-2"><strong>Data Types:</strong></small>
+                                            {% for dtype in dataset.data_types.split(',')[:8] %}
+                                            <span class="badge bg-light text-dark me-1 mb-1">{{ dtype.strip() }}</span>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Quality & Health Report -->
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-header bg-danger text-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-heartbeat me-2"></i>
+                                            Quality & Health Report
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="text-center mb-3">
+                                            <div class="quality-circle mx-auto" style="width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: conic-gradient(#28a745 {{ metadata.quality_score * 3.6 }}deg, #e9ecef 0deg);">
+                                                <div class="inner-circle bg-white rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                                    <h5 class="mb-0 text-primary">{{ metadata.quality_score|int }}%</h5>
+                                                </div>
+                                            </div>
+                                            <small class="text-muted mt-2 d-block">Overall Quality Score</small>
+                                        </div>
+
+                                        <div class="quality-metrics">
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <span>Completeness:</span>
+                                                <span class="badge bg-primary">{{ metadata.completeness|int }}%</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <span>Consistency:</span>
+                                                <span class="badge bg-success">{{ metadata.consistency|int }}%</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between">
+                                                <span>Accuracy:</span>
+                                                <span class="badge bg-info">{{ metadata.accuracy|int if metadata.accuracy else 'N/A' }}%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Metadata Generation Summary -->
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-header bg-dark text-white">
+                                        <h6 class="mb-0"><i class="fas fa-tachometer-alt me-2"></i>Metadata Generation Summary</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row text-center">
+                                            <div class="col-md-2 mb-3">
+                                                <div class="metric-box">
+                                                    <h4 class="text-warning">{{ (dataset.keywords.split(',')|length) if dataset.keywords else 0 }}</h4>
+                                                    <small>Keywords</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2 mb-3">
+                                                <div class="metric-box">
+                                                    <h4 class="text-purple">{{ (dataset.use_cases.split(',')|length) if dataset.use_cases else 0 }}</h4>
+                                                    <small>Use Cases</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2 mb-3">
+                                                <div class="metric-box">
+                                                    <h4 class="text-dark">{{ (dataset.tags.split(',')|length) if dataset.tags else 0 }}</h4>
+                                                    <small>Tags</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2 mb-3">
+                                                <div class="metric-box">
+                                                    <h4 class="text-info">{{ dataset.field_count or 0 }}</h4>
+                                                    <small>Fields</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2 mb-3">
+                                                <div class="metric-box">
+                                                    <h4 class="text-success">{{ dataset.record_count or 0 }}</h4>
+                                                    <small>Records</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2 mb-3">
+                                                <div class="metric-box">
+                                                    <h4 class="text-primary">{{ metadata.quality_score|int }}%</h4>
+                                                    <small>Quality</small>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -199,9 +1001,1263 @@
                         </div>
                     </div>
 
+                    <!-- AI Generated Metadata Tab -->
+                    <div class="tab-pane fade" id="generated-metadata">
+                        <h3 class="metadata-heading">
+                            <i class="fas fa-robot me-2 text-primary"></i>
+                            AI Generated Metadata
+                        </h3>
+
+                        <div class="alert alert-success mb-4">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-magic fa-2x me-3"></i>
+                                <div>
+                                    <h5 class="alert-heading mb-1">Intelligent Metadata Generation</h5>
+                                    <p class="mb-0">The following metadata was automatically generated using advanced NLP techniques including BERT embeddings, Named Entity Recognition, and TF-IDF analysis.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Collection-Specific Metadata Section -->
+                        {% if dataset.is_collection and dataset.structured_description %}
+                        {% set collection_metadata = dataset.structured_description | from_json %}
+
+                        <!-- Collection Overview -->
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <div class="card border-info">
+                                    <div class="card-header bg-info text-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-archive me-2"></i>
+                                            Collection Analysis Overview
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if collection_metadata.collection_info %}
+                                        <div class="row mb-3">
+                                            <div class="col-md-3 text-center">
+                                                <h3 class="text-info">{{ collection_metadata.collection_info.total_datasets }}</h3>
+                                                <p class="mb-0">Datasets</p>
+                                            </div>
+                                            <div class="col-md-3 text-center">
+                                                <h3 class="text-success">{{ collection_metadata.aggregated_statistics.total_records|default(0) }}</h3>
+                                                <p class="mb-0">Total Records</p>
+                                            </div>
+                                            <div class="col-md-3 text-center">
+                                                <h3 class="text-warning">{{ collection_metadata.aggregated_statistics.total_fields|default(0) }}</h3>
+                                                <p class="mb-0">Total Fields</p>
+                                            </div>
+                                            <div class="col-md-3 text-center">
+                                                <span class="badge bg-primary fs-6">{{ collection_metadata.collection_info.collection_type|title }}</span>
+                                                <p class="mb-0 mt-1">Collection Type</p>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+
+                                        {% if collection_metadata.content_analysis %}
+                                        <div class="mt-3">
+                                            <h6 class="text-primary">Content Analysis:</h6>
+                                            <p class="text-muted">{{ collection_metadata.content_analysis.thematic_summary|default("Multi-dataset collection with diverse content.") }}</p>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Collection Use Cases -->
+                        {% if collection_metadata.collection_use_cases %}
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-header bg-success text-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-lightbulb me-2"></i>
+                                            Collection-Specific Use Cases
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            {% for use_case in collection_metadata.collection_use_cases[:6] %}
+                                            <div class="col-md-6 mb-2">
+                                                <div class="d-flex align-items-start">
+                                                    <i class="fas fa-arrow-right text-success me-2 mt-1"></i>
+                                                    <span>{{ use_case }}</span>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Cross-Dataset Relationships -->
+                        {% if collection_metadata.cross_dataset_relationships %}
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-header bg-warning text-dark">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-project-diagram me-2"></i>
+                                            Dataset Relationships
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if collection_metadata.cross_dataset_relationships.schema_similarities %}
+                                        <div class="mb-3">
+                                            <h6 class="text-primary">Schema Similarities:</h6>
+                                            {% for similarity in collection_metadata.cross_dataset_relationships.schema_similarities[:3] %}
+                                            <div class="mb-2">
+                                                <span class="badge bg-primary">{{ similarity.similarity_score|round(2) * 100 }}% similar</span>
+                                                <small class="text-muted ms-2">{{ similarity.dataset_1 }} ↔ {{ similarity.dataset_2 }}</small>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+
+                                        {% if collection_metadata.cross_dataset_relationships.complementary_datasets %}
+                                        <div class="mb-3">
+                                            <h6 class="text-success">Complementary Datasets:</h6>
+                                            {% for group in collection_metadata.cross_dataset_relationships.complementary_datasets[:2] %}
+                                            <div class="mb-2">
+                                                <span class="badge bg-success">{{ group.category|title }}</span>
+                                                <small class="text-muted ms-2">{{ group.datasets|join(', ') }}</small>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Collection Quality Summary -->
+                        {% if collection_metadata.quality_summary %}
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-header bg-purple text-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-chart-line me-2"></i>
+                                            Collection Quality Assessment
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-3 text-center">
+                                                <h4 class="text-purple">{{ collection_metadata.quality_summary.average_quality_score|round(1) }}%</h4>
+                                                <p class="mb-0">Average Quality</p>
+                                            </div>
+                                            <div class="col-md-3 text-center">
+                                                <h4 class="text-info">{{ collection_metadata.quality_summary.average_completeness|round(1) }}%</h4>
+                                                <p class="mb-0">Completeness</p>
+                                            </div>
+                                            <div class="col-md-3 text-center">
+                                                <h4 class="text-success">{{ collection_metadata.quality_summary.datasets_with_high_quality }}</h4>
+                                                <p class="mb-0">High Quality</p>
+                                            </div>
+                                            <div class="col-md-3 text-center">
+                                                <span class="badge bg-purple fs-6">{{ collection_metadata.quality_summary.overall_assessment }}</span>
+                                                <p class="mb-0 mt-1">Assessment</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endif %}
+
+                        <!-- Enhanced Description Section -->
+                        {% if dataset.description or dataset.python_analysis_code or dataset.field_names or dataset.record_count %}
+                        <div class="row mb-4">
+                            <div class="col-md-12 mb-4">
+                                <div class="card">
+                                    <div class="card-header bg-primary text-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-file-alt me-2"></i>
+                                            {% if dataset.is_collection %}
+                                                Collection Description & Analysis
+                                            {% else %}
+                                                Generated Description & Python Code
+                                            {% endif %}
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if dataset.description %}
+                                        <div class="description-content">
+                                            <h6 class="text-primary mb-3">Dataset Description:</h6>
+                                            <div class="description-text mb-4" style="line-height: 1.6;">
+                                                {% set description_length = dataset.description|length %}
+                                                {% if description_length > 500 %}
+                                                    <div id="description-preview">
+                                                        {{ dataset.description[:500]|replace('\n', '<br>')|safe }}...
+                                                        <br><br>
+                                                        <button class="btn btn-sm btn-outline-primary" onclick="toggleDescription()">
+                                                            <i class="fas fa-chevron-down me-1"></i>Show More
+                                                        </button>
+                                                    </div>
+                                                    <div id="description-full" style="display: none;">
+                                                        {{ dataset.description|replace('\n', '<br>')|safe }}
+                                                        <br><br>
+                                                        <button class="btn btn-sm btn-outline-secondary" onclick="toggleDescription()">
+                                                            <i class="fas fa-chevron-up me-1"></i>Show Less
+                                                        </button>
+                                                    </div>
+                                                {% else %}
+                                                    {{ dataset.description|replace('\n', '<br>')|safe }}
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        {% else %}
+                                        <div class="alert alert-info">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            Description will be automatically generated during processing using advanced AI models.
+                                        </div>
+                                        {% endif %}
+
+                                        {% if dataset.structured_description %}
+                                        <div class="mt-4">
+                                            <h6 class="text-success mb-3">Structured Analysis:</h6>
+                                            <div class="structured-description">
+                                                <script>
+                                                try {
+                                                    const structuredData = JSON.parse('{{ dataset.structured_description|safe }}');
+                                                    let html = '';
+
+                                                    // Overview section
+                                                    if (structuredData.overview) {
+                                                        html += '<div class="mb-4"><h6 class="text-primary">Overview</h6>';
+                                                        html += '<p class="text-muted">' + structuredData.overview.text + '</p></div>';
+                                                    }
+
+                                                    // Data structure section
+                                                    if (structuredData.data_structure) {
+                                                        html += '<div class="mb-4"><h6 class="text-primary">Data Structure</h6>';
+                                                        html += '<p class="text-muted">' + structuredData.data_structure.description + '</p>';
+                                                        if (structuredData.data_structure.field_names && structuredData.data_structure.field_names.length > 0) {
+                                                            html += '<p><strong>Fields:</strong> ' + structuredData.data_structure.field_names.slice(0, 5).join(', ');
+                                                            if (structuredData.data_structure.field_names.length > 5) {
+                                                                html += ' <em>(and ' + (structuredData.data_structure.field_names.length - 5) + ' more)</em>';
+                                                            }
+                                                            html += '</p>';
+                                                        }
+                                                        html += '</div>';
+                                                    }
+
+                                                    // Use cases section
+                                                    if (structuredData.use_cases && structuredData.use_cases.applications) {
+                                                        html += '<div class="mb-4"><h6 class="text-primary">Applications</h6>';
+                                                        html += '<ul class="list-unstyled">';
+                                                        structuredData.use_cases.applications.slice(0, 4).forEach(function(useCase) {
+                                                            html += '<li class="mb-1"><i class="fas fa-check-circle text-success me-2"></i>' + useCase.trim() + '</li>';
+                                                        });
+                                                        html += '</ul></div>';
+                                                    }
+
+                                                    document.write(html);
+                                                } catch (e) {
+                                                    // Fallback to raw display
+                                                    document.write('<div class="bg-light p-3 rounded"><pre class="mb-0" style="white-space: pre-wrap;">{{ dataset.structured_description }}</pre></div>');
+                                                }
+                                                </script>
+                                                <noscript>
+                                                    <div class="bg-light p-3 rounded">
+                                                        <pre class="mb-0" style="white-space: pre-wrap;">{{ dataset.structured_description }}</pre>
+                                                    </div>
+                                                </noscript>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+
+                                        <!-- Python Analysis Code Section -->
+                                        {% if dataset.python_analysis_code %}
+                                        <div class="mt-4">
+                                            <h6 class="text-success mb-3">
+                                                <i class="fab fa-python me-2"></i>
+                                                Generated Python Analysis Code:
+                                            </h6>
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-robot me-1"></i>
+                                                    Auto-generated but you can still edit to your requirements
+                                                </small>
+                                                <button class="btn btn-sm btn-outline-primary" onclick="copyPythonCode()">
+                                                    <i class="fas fa-copy me-1"></i>Copy Code
+                                                </button>
+                                            </div>
+                                            <div class="bg-dark text-light p-3 rounded" style="max-height: 400px; overflow-y: auto;">
+                                                <pre id="python-code" class="mb-0 text-light"><code class="language-python">{{ dataset.python_analysis_code }}</code></pre>
+                                            </div>
+                                        </div>
+                                        {% elif dataset.field_names or dataset.record_count %}
+                                        <div class="mt-4">
+                                            <h6 class="text-info mb-3">
+                                                <i class="fas fa-code me-2"></i>
+                                                Basic Python Analysis Template:
+                                            </h6>
+                                            <div class="bg-dark text-light p-3 rounded">
+                                                <pre class="mb-0 text-light"><code># Dataset Analysis Example for {{ dataset.title }}
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load the dataset
+df = pd.read_csv('{{ dataset.title|replace(' ', '_')|lower }}.csv')
+
+# Basic dataset information
+print("Dataset Shape:", df.shape)
+print("\\nDataset Info:")
+print(df.info())
+
+# Display first few rows
+print("\\nFirst 5 rows:")
+print(df.head())
+
+# Basic statistics
+print("\\nBasic Statistics:")
+print(df.describe())
+
+# Check for missing values
+print("\\nMissing Values:")
+print(df.isnull().sum())
+
+{% if dataset.field_names %}
+# Column analysis
+columns = {{ dataset.field_names.split(',')[:5]|list }}
+for col in columns:
+    if col in df.columns:
+        print(f"\\nAnalysis for {col}:")
+        if df[col].dtype in ['int64', 'float64']:
+            print(f"  Mean: {df[col].mean():.2f}")
+            print(f"  Std: {df[col].std():.2f}")
+        else:
+            print(f"  Unique values: {df[col].nunique()}")
+{% endif %}
+
+# Visualization examples
+plt.figure(figsize=(12, 8))
+
+# Correlation heatmap for numeric columns
+numeric_cols = df.select_dtypes(include=[np.number]).columns
+if len(numeric_cols) > 1:
+    plt.subplot(2, 2, 1)
+    sns.heatmap(df[numeric_cols].corr(), annot=True, cmap='coolwarm')
+    plt.title('Correlation Matrix')
+
+# Distribution plots
+if len(numeric_cols) > 0:
+    plt.subplot(2, 2, 2)
+    df[numeric_cols[0]].hist(bins=30)
+    plt.title(f'Distribution of {numeric_cols[0]}')
+
+plt.tight_layout()
+plt.show()
+
+# Advanced analysis suggestions:
+# 1. Perform exploratory data analysis (EDA)
+# 2. Handle missing values and outliers
+# 3. Feature engineering and selection
+# 4. Apply machine learning models if applicable
+# 5. Create interactive visualizations with plotly</code></pre>
+                                            </div>
+                                            <small class="text-muted mt-2 d-block">
+                                                <i class="fas fa-lightbulb me-1"></i>
+                                                This code example is automatically generated based on your dataset structure. Modify as needed for your specific analysis requirements.
+                                            </small>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                            <!-- Keywords -->
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-header bg-info text-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-tags me-2"></i>
+                                            Extracted Keywords
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if dataset.keywords %}
+                                        <div class="keywords-container">
+                                            {% for keyword in dataset.keywords.split(',')[:20] %}
+                                            <span class="badge bg-primary me-1 mb-1">{{ keyword.strip() }}</span>
+                                            {% endfor %}
+                                        </div>
+                                        <small class="text-muted mt-2 d-block">
+                                            Generated using NLP keyword extraction techniques
+                                        </small>
+                                        {% else %}
+                                        <p class="text-muted">No keywords extracted yet.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Use Case Suggestions -->
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-header bg-success text-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-lightbulb me-2"></i>
+                                            Use Case Suggestions
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if dataset.use_cases %}
+                                        <ul class="list-unstyled">
+                                            {% for use_case in dataset.use_cases.split(',')[:10] %}
+                                            <li class="mb-2">
+                                                <i class="fas fa-arrow-right text-success me-2"></i>
+                                                {{ use_case.strip() }}
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                        <small class="text-muted">
+                                            Potential applications and use cases
+                                        </small>
+                                        {% else %}
+                                        <p class="text-muted">No use cases suggested yet.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tags -->
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-header bg-warning text-dark">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-hashtag me-2"></i>
+                                            Generated Tags
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if dataset.tags %}
+                                        <div class="tags-container">
+                                            {% for tag in dataset.tags.split(',')[:15] %}
+                                            <span class="badge bg-warning text-dark me-1 mb-1">#{{ tag.strip() }}</span>
+                                            {% endfor %}
+                                        </div>
+                                        <small class="text-muted mt-2 d-block">
+                                            Automatically categorized tags for improved discoverability
+                                        </small>
+                                        {% else %}
+                                        <p class="text-muted">No tags generated yet.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Category Classification -->
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-header bg-purple text-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-sitemap me-2"></i>
+                                            AI Classification
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="classification-item mb-3">
+                                            <strong>Category:</strong>
+                                            <span class="badge bg-purple ms-2">{{ dataset.category or 'Not classified' }}</span>
+                                        </div>
+
+                                        <div class="classification-item mb-3">
+                                            <strong>Data Type:</strong>
+                                            <span class="badge bg-info ms-2">{{ dataset.data_type or 'Not determined' }}</span>
+                                        </div>
+
+                                        <div class="classification-item">
+                                            <strong>Domain:</strong>
+                                            <span class="badge bg-secondary ms-2">{{ dataset.domain or 'General' }}</span>
+                                        </div>
+
+                                        <small class="text-muted mt-2 d-block">
+                                            Intelligent classification based on content analysis
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- NLP Processing Details -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-header bg-dark text-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-brain me-2"></i>
+                                            NLP Processing Techniques Used
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-3 mb-3">
+                                                <div class="nlp-technique text-center">
+                                                    <i class="fas fa-search-plus fa-2x text-primary mb-2"></i>
+                                                    <h6>BERT Embeddings</h6>
+                                                    <small class="text-muted">Semantic understanding and similarity analysis</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 mb-3">
+                                                <div class="nlp-technique text-center">
+                                                    <i class="fas fa-eye fa-2x text-success mb-2"></i>
+                                                    <h6>Named Entity Recognition</h6>
+                                                    <small class="text-muted">Extraction of entities, people, places, organizations</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 mb-3">
+                                                <div class="nlp-technique text-center">
+                                                    <i class="fas fa-chart-line fa-2x text-warning mb-2"></i>
+                                                    <h6>TF-IDF Analysis</h6>
+                                                    <small class="text-muted">Term frequency and importance scoring</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 mb-3">
+                                                <div class="nlp-technique text-center">
+                                                    <i class="fas fa-cogs fa-2x text-info mb-2"></i>
+                                                    <h6>Content Analysis</h6>
+                                                    <small class="text-muted">Pattern recognition and classification</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Data Structure Tab -->
+                    <div class="tab-pane fade" id="data-structure">
+                        <h3 class="metadata-heading">
+                            <i class="fas fa-table me-2 text-primary"></i>
+                            Data Structure Analysis
+                        </h3>
+
+                        <div class="row mb-4">
+                            <!-- Record and Field Counts -->
+                            <div class="col-md-4 mb-4">
+                                <div class="card h-100 border-primary">
+                                    <div class="card-header bg-primary text-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-database me-2"></i>
+                                            Dataset Dimensions
+                                        </h6>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <h2 class="text-primary">{{ dataset.record_count or 'N/A' }}</h2>
+                                                <p class="mb-0">Records</p>
+                                            </div>
+                                            <div class="col-6">
+                                                <h2 class="text-success">{{ dataset.field_count or 'N/A' }}</h2>
+                                                <p class="mb-0">Fields</p>
+                                            </div>
+                                        </div>
+
+                                        {% if dataset.file_size %}
+                                        <div class="mt-3 pt-3 border-top">
+                                            <h4 class="text-info">{{ dataset.file_size }}</h4>
+                                            <p class="mb-0">File Size</p>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Field Names -->
+                            <div class="col-md-8 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-header bg-info text-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-list me-2"></i>
+                                            Field Names
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if dataset.field_names %}
+                                        <div class="field-names-container" style="max-height: 200px; overflow-y: auto;">
+                                            {% for field in dataset.field_names.split(',')[:50] %}
+                                            <span class="badge bg-info me-1 mb-1">{{ field.strip() }}</span>
+                                            {% endfor %}
+                                            {% if dataset.field_names.split(',')|length > 50 %}
+                                            <span class="badge bg-secondary">+{{ dataset.field_names.split(',')|length - 50 }} more</span>
+                                            {% endif %}
+                                        </div>
+                                        <small class="text-muted mt-2 d-block">
+                                            Showing {% if dataset.field_names.split(',')|length > 50 %}first 50 of {% endif %}{{ dataset.field_names.split(',')|length }} fields
+                                        </small>
+                                        {% else %}
+                                        <p class="text-muted">Field names not available. They will be extracted during processing.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Data Types Analysis -->
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-header bg-success text-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-code me-2"></i>
+                                            Data Types Distribution
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if dataset.data_types %}
+                                        <div class="row">
+                                            {% set data_types = dataset.data_types.split(',') %}
+                                            {% for data_type in data_types[:12] %}
+                                            <div class="col-md-2 col-sm-4 mb-3">
+                                                <div class="data-type-item text-center p-2 border rounded">
+                                                    {% if 'string' in data_type.lower() or 'text' in data_type.lower() %}
+                                                    <i class="fas fa-font fa-2x text-primary mb-2"></i>
+                                                    {% elif 'int' in data_type.lower() or 'number' in data_type.lower() %}
+                                                    <i class="fas fa-hashtag fa-2x text-success mb-2"></i>
+                                                    {% elif 'float' in data_type.lower() or 'decimal' in data_type.lower() %}
+                                                    <i class="fas fa-calculator fa-2x text-warning mb-2"></i>
+                                                    {% elif 'date' in data_type.lower() or 'time' in data_type.lower() %}
+                                                    <i class="fas fa-calendar fa-2x text-info mb-2"></i>
+                                                    {% elif 'bool' in data_type.lower() %}
+                                                    <i class="fas fa-toggle-on fa-2x text-purple mb-2"></i>
+                                                    {% else %}
+                                                    <i class="fas fa-question fa-2x text-secondary mb-2"></i>
+                                                    {% endif %}
+                                                    <h6 class="mb-0">{{ data_type.strip() }}</h6>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+
+                                        {% if data_types|length > 12 %}
+                                        <div class="mt-3">
+                                            <small class="text-muted">
+                                                Showing 12 of {{ data_types|length }} data types.
+                                                <a href="#" onclick="showAllDataTypes()">Show all</a>
+                                            </small>
+                                        </div>
+                                        {% endif %}
+
+                                        {% else %}
+                                        <div class="text-center py-4">
+                                            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                                            <p class="text-muted">Data types will be analyzed during processing.</p>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Schema Information -->
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-header bg-warning text-dark">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-sitemap me-2"></i>
+                                            Schema Information
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="schema-item mb-3">
+                                            <strong>Format:</strong>
+                                            <span class="badge bg-warning text-dark ms-2">{{ dataset.format or 'Unknown' }}</span>
+                                        </div>
+
+                                        <div class="schema-item mb-3">
+                                            <strong>Encoding:</strong>
+                                            <span class="badge bg-secondary ms-2">{{ dataset.encoding or 'UTF-8' }}</span>
+                                        </div>
+
+                                        <div class="schema-item mb-3">
+                                            <strong>Structure:</strong>
+                                            <span class="badge bg-info ms-2">
+                                                {% if dataset.format == 'csv' %}Tabular
+                                                {% elif dataset.format == 'json' %}Hierarchical
+                                                {% elif dataset.format == 'xml' %}Structured
+                                                {% else %}Unknown{% endif %}
+                                            </span>
+                                        </div>
+
+                                        {% if dataset.schema_org_json %}
+                                        <div class="schema-item">
+                                            <strong>Schema.org:</strong>
+                                            <span class="badge bg-success ms-2">Available</span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-header bg-dark text-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-chart-pie me-2"></i>
+                                            Structure Summary
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="structure-stats">
+                                            <div class="stat-row d-flex justify-content-between mb-2">
+                                                <span>Total Fields:</span>
+                                                <strong>{{ dataset.field_count if dataset.field_count else 'Processing...' }}</strong>
+                                            </div>
+
+                                            <div class="stat-row d-flex justify-content-between mb-2">
+                                                <span>Total Records:</span>
+                                                <strong>{{ dataset.record_count if dataset.record_count else 'Processing...' }}</strong>
+                                            </div>
+
+                                            {% if dataset.field_count and dataset.record_count %}
+                                            <div class="stat-row d-flex justify-content-between mb-2">
+                                                <span>Data Points:</span>
+                                                <strong>{{ (dataset.field_count * dataset.record_count)|int }}</strong>
+                                            </div>
+                                            {% endif %}
+
+                                            <div class="stat-row d-flex justify-content-between mb-2">
+                                                <span>Data Density:</span>
+                                                <strong>{{ metadata.completeness|int if metadata.completeness else 'N/A' }}%</strong>
+                                            </div>
+
+                                            <div class="stat-row d-flex justify-content-between">
+                                                <span>Quality Score:</span>
+                                                <strong class="text-{{ 'success' if metadata.quality_score >= 80 else ('warning' if metadata.quality_score >= 60 else 'danger') }}">
+                                                    {{ metadata.quality_score|int }}%
+                                                </strong>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quality Report Tab -->
+                    <div class="tab-pane fade" id="quality-report">
+                        <div class="card mb-4" style="background: linear-gradient(135deg, rgba(40, 167, 69, 0.8), rgba(40, 167, 69, 0.6)), url('{{ url_for('static', filename='images/quality.jpg') }}') center/cover no-repeat; border: none;">
+                            <div class="card-body text-center py-4">
+                                <h3 class="metadata-heading text-white" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">
+                                    <i class="fas fa-chart-line me-2"></i>
+                                    Comprehensive Quality Report
+                                </h3>
+                            </div>
+                        </div>
+
+                        {% if metadata and metadata.quality_score is defined %}
+                        <div class="row mb-4">
+                            <!-- Overall Quality Score -->
+                            <div class="col-md-4 mb-4">
+                                <div class="card h-100 border-primary">
+                                    <div class="card-header bg-primary text-white text-center">
+                                        <h6 class="mb-0">Overall Quality Score</h6>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <div class="quality-circle mx-auto mb-3" style="width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: conic-gradient(#28a745 {{ metadata.quality_score * 3.6 }}deg, #e9ecef 0deg);">
+                                            <div class="inner-circle bg-white rounded-circle d-flex align-items-center justify-content-center" style="width: 90px; height: 90px;">
+                                                <h2 class="mb-0 text-primary">{{ metadata.quality_score|int }}%</h2>
+                                            </div>
+                                        </div>
+                                        <p class="mb-0 text-muted">
+                                            {% if metadata.quality_score >= 90 %}Excellent
+                                            {% elif metadata.quality_score >= 80 %}Very Good
+                                            {% elif metadata.quality_score >= 70 %}Good
+                                            {% elif metadata.quality_score >= 60 %}Fair
+                                            {% else %}Needs Improvement{% endif %}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Quality Metrics -->
+                            <div class="col-md-8 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-header bg-info text-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-tachometer-alt me-2"></i>
+                                            Quality Metrics Breakdown
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="quality-metric mb-3">
+                                            <div class="d-flex justify-content-between mb-1">
+                                                <span><strong>Completeness</strong></span>
+                                                <span>{{ metadata.completeness|int }}%</span>
+                                            </div>
+                                            <div class="progress" style="height: 8px;">
+                                                <div class="progress-bar bg-success" style="width: {{ metadata.completeness }}%"></div>
+                                            </div>
+                                            <small class="text-muted">Percentage of non-null values</small>
+                                        </div>
+
+                                        <div class="quality-metric mb-3">
+                                            <div class="d-flex justify-content-between mb-1">
+                                                <span><strong>Consistency</strong></span>
+                                                <span>{{ metadata.consistency|int }}%</span>
+                                            </div>
+                                            <div class="progress" style="height: 8px;">
+                                                <div class="progress-bar bg-warning" style="width: {{ metadata.consistency }}%"></div>
+                                            </div>
+                                            <small class="text-muted">Data format and type consistency</small>
+                                        </div>
+
+                                        <div class="quality-metric mb-3">
+                                            <div class="d-flex justify-content-between mb-1">
+                                                <span><strong>Accuracy</strong></span>
+                                                <span>{{ metadata.accuracy|int if metadata.accuracy else 'N/A' }}%</span>
+                                            </div>
+                                            <div class="progress" style="height: 8px;">
+                                                <div class="progress-bar bg-info" style="width: {{ metadata.accuracy or 0 }}%"></div>
+                                            </div>
+                                            <small class="text-muted">Data validity and correctness</small>
+                                        </div>
+
+                                        <div class="quality-metric">
+                                            <div class="d-flex justify-content-between mb-1">
+                                                <span><strong>Uniqueness</strong></span>
+                                                <span>{{ metadata.uniqueness|int if metadata.uniqueness else 'N/A' }}%</span>
+                                            </div>
+                                            <div class="progress" style="height: 8px;">
+                                                <div class="progress-bar bg-purple" style="width: {{ metadata.uniqueness or 0 }}%"></div>
+                                            </div>
+                                            <small class="text-muted">Percentage of unique records</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quality Issues and Recommendations -->
+                        <div class="row">
+                            {% if metadata.issues_list %}
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100 border-danger">
+                                    <div class="card-header bg-danger text-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                            Quality Issues ({{ metadata.issues_list|length }})
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="issues-list" style="max-height: 300px; overflow-y: auto;">
+                                            {% for issue in metadata.issues_list %}
+                                            <div class="issue-item mb-2 p-2 bg-light rounded">
+                                                <i class="fas fa-exclamation-circle text-danger me-2"></i>
+                                                {{ issue }}
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if metadata.recommendations_list %}
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100 border-success">
+                                    <div class="card-header bg-success text-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-lightbulb me-2"></i>
+                                            Recommendations ({{ metadata.recommendations_list|length }})
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="recommendations-list" style="max-height: 300px; overflow-y: auto;">
+                                            {% for rec in metadata.recommendations_list %}
+                                            <div class="recommendation-item mb-2 p-2 bg-light rounded">
+                                                <i class="fas fa-check-circle text-success me-2"></i>
+                                                {{ rec }}
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% else %}
+                        <div class="alert alert-info">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-info-circle fa-2x me-3"></i>
+                                <div>
+                                    <h5 class="alert-heading mb-1">Quality Assessment Pending</h5>
+                                    <p class="mb-0">Quality metrics will be available once the dataset processing is complete.</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Health Report Tab -->
+                    <div class="tab-pane fade" id="health-report">
+                        <h3 class="metadata-heading">
+                            <i class="fas fa-heartbeat me-2 text-danger"></i>
+                            Dataset Health Report
+                        </h3>
+
+                        {% if metadata and metadata.quality_score is defined %}
+                        <div class="row mb-4">
+                            <!-- Health Status -->
+                            <div class="col-md-4 mb-4">
+                                <div class="card h-100 border-success">
+                                    <div class="card-header bg-success text-white text-center">
+                                        <h6 class="mb-0">Health Status</h6>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        {% set health_score = metadata.quality_score %}
+                                        <div class="health-indicator mb-3">
+                                            {% if health_score >= 80 %}
+                                            <i class="fas fa-heart fa-4x text-success"></i>
+                                            <h4 class="text-success mt-2">Healthy</h4>
+                                            {% elif health_score >= 60 %}
+                                            <i class="fas fa-heart fa-4x text-warning"></i>
+                                            <h4 class="text-warning mt-2">Fair</h4>
+                                            {% else %}
+                                            <i class="fas fa-heart fa-4x text-danger"></i>
+                                            <h4 class="text-danger mt-2">Needs Attention</h4>
+                                            {% endif %}
+                                        </div>
+                                        <p class="text-muted">Overall dataset health based on quality metrics</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Health Metrics -->
+                            <div class="col-md-8 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-header bg-info text-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-stethoscope me-2"></i>
+                                            Health Diagnostics
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <div class="health-metric">
+                                                    <div class="d-flex align-items-center mb-2">
+                                                        <i class="fas fa-database text-primary me-2"></i>
+                                                        <strong>Data Integrity</strong>
+                                                    </div>
+                                                    <div class="progress mb-1" style="height: 6px;">
+                                                        <div class="progress-bar bg-primary" style="width: {{ metadata.completeness }}%"></div>
+                                                    </div>
+                                                    <small class="text-muted">{{ metadata.completeness|int }}% complete</small>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-6 mb-3">
+                                                <div class="health-metric">
+                                                    <div class="d-flex align-items-center mb-2">
+                                                        <i class="fas fa-shield-alt text-success me-2"></i>
+                                                        <strong>Data Consistency</strong>
+                                                    </div>
+                                                    <div class="progress mb-1" style="height: 6px;">
+                                                        <div class="progress-bar bg-success" style="width: {{ metadata.consistency }}%"></div>
+                                                    </div>
+                                                    <small class="text-muted">{{ metadata.consistency|int }}% consistent</small>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-6 mb-3">
+                                                <div class="health-metric">
+                                                    <div class="d-flex align-items-center mb-2">
+                                                        <i class="fas fa-check-circle text-warning me-2"></i>
+                                                        <strong>Schema Compliance</strong>
+                                                    </div>
+                                                    <div class="progress mb-1" style="height: 6px;">
+                                                        <div class="progress-bar bg-warning" style="width: {{ 100 if metadata.schema_org_compliant else 50 }}%"></div>
+                                                    </div>
+                                                    <small class="text-muted">{{ 'Compliant' if metadata.schema_org_compliant else 'Partial' }}</small>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-6 mb-3">
+                                                <div class="health-metric">
+                                                    <div class="d-flex align-items-center mb-2">
+                                                        <i class="fas fa-balance-scale text-info me-2"></i>
+                                                        <strong>FAIR Compliance</strong>
+                                                    </div>
+                                                    <div class="progress mb-1" style="height: 6px;">
+                                                        {% set overall_fair_score = ((metadata.findable_score or 0) + (metadata.accessible_score or 0) + (metadata.interoperable_score or 0) + (metadata.reusable_score or 0)) / 4 if metadata else (dataset.fair_score or 0) %}
+                                                        {% set fair_compliant = overall_fair_score >= 75 %}
+                                                        <div class="progress-bar bg-info" style="width: {{ overall_fair_score }}%"></div>
+                                                    </div>
+                                                    <small class="text-muted">{{ 'Compliant' if fair_compliant else 'Partial' }} ({{ overall_fair_score|int }}%)</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Health Recommendations -->
+                        <div class="row mb-0">
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-header bg-dark text-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-user-md me-2"></i>
+                                            Health Recommendations
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            {% if metadata.quality_score < 80 %}
+                                            <div class="col-md-6 mb-3">
+                                                <div class="alert alert-warning">
+                                                    <h6><i class="fas fa-exclamation-triangle me-2"></i>Quality Improvement Needed</h6>
+                                                    <p class="mb-0">Consider reviewing data completeness and consistency to improve overall quality score.</p>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+
+                                            {% if not metadata.schema_org_compliant %}
+                                            <div class="col-md-6 mb-3">
+                                                <div class="alert alert-info">
+                                                    <h6><i class="fas fa-code me-2"></i>Schema Enhancement</h6>
+                                                    <p class="mb-0">Adding Schema.org compliance will improve discoverability and interoperability.</p>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+
+                                            {% set fair_compliant = metadata.fair_compliant if metadata and metadata.fair_compliant is defined else dataset.fair_compliant %}
+                                            {% if not fair_compliant %}
+                                            <div class="col-md-6 mb-3">
+                                                <div class="alert alert-primary">
+                                                    <h6><i class="fas fa-balance-scale me-2"></i>FAIR Compliance</h6>
+                                                    <p class="mb-0">Enhance metadata to achieve full FAIR principles compliance for better research impact.</p>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+
+                                            <div class="col-md-6 mb-3">
+                                                <div class="alert alert-success">
+                                                    <h6><i class="fas fa-chart-line me-2"></i>Regular Monitoring</h6>
+                                                    <p class="mb-0">Continue monitoring dataset health and quality metrics for optimal performance.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-info">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-heartbeat fa-2x me-3"></i>
+                                <div>
+                                    <h5 class="alert-heading mb-1">Health Assessment Pending</h5>
+                                    <p class="mb-0">Dataset health metrics will be available once the quality assessment is complete.</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Visualizations Tab -->
+                    <div class="tab-pane fade" id="visualizations">
+                        <div class="card mb-4" style="background: linear-gradient(135deg, rgba(13, 110, 253, 0.8), rgba(13, 110, 253, 0.6)), url('{{ url_for('static', filename='images/visualizations.jpg') }}') center/cover no-repeat; border: none;">
+                            <div class="card-body text-center py-4">
+                                <h3 class="metadata-heading text-white" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">
+                                    <i class="fas fa-chart-bar me-2"></i>
+                                    Generated Visualizations
+                                </h3>
+                            </div>
+                        </div>
+
+                        {% if dataset.visualizations %}
+                        <div class="alert alert-success mb-4">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-chart-pie fa-2x me-3"></i>
+                                <div>
+                                    <h5 class="alert-heading mb-1">Interactive Visualizations Available</h5>
+                                    <p class="mb-0">Comprehensive charts and graphs have been automatically generated to help you understand your data better.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-header bg-primary text-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-eye me-2"></i>
+                                            View Full Visualizations
+                                        </h6>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <p class="mb-3">Interactive charts including quality metrics, data distribution, correlation analysis, and more are available on the dedicated visualizations page.</p>
+                                        <a href="{{ url_for('datasets.visualizations', dataset_id=dataset.id) }}" class="btn btn-primary btn-lg">
+                                            <i class="fas fa-chart-bar me-2"></i>
+                                            Open Visualizations Dashboard
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-0">
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-header bg-info text-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-list me-2"></i>
+                                            Available Visualization Types
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-3 mb-3">
+                                                <div class="viz-type-card text-center p-3 border rounded">
+                                                    <i class="fas fa-chart-line fa-2x text-primary mb-2"></i>
+                                                    <h6>Line Charts</h6>
+                                                    <small class="text-muted">Trend analysis and time series</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 mb-3">
+                                                <div class="viz-type-card text-center p-3 border rounded">
+                                                    <i class="fas fa-chart-bar fa-2x text-success mb-2"></i>
+                                                    <h6>Bar Charts</h6>
+                                                    <small class="text-muted">Categorical data comparison</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 mb-3">
+                                                <div class="viz-type-card text-center p-3 border rounded">
+                                                    <i class="fas fa-chart-area fa-2x text-warning mb-2"></i>
+                                                    <h6>Histograms</h6>
+                                                    <small class="text-muted">Data distribution analysis</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 mb-3">
+                                                <div class="viz-type-card text-center p-3 border rounded">
+                                                    <i class="fas fa-chart-pie fa-2x text-info mb-2"></i>
+                                                    <h6>Pie Charts</h6>
+                                                    <small class="text-muted">Proportional data representation</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 mb-3">
+                                                <div class="viz-type-card text-center p-3 border rounded">
+                                                    <i class="fas fa-braille fa-2x text-purple mb-2"></i>
+                                                    <h6>Scatter Plots</h6>
+                                                    <small class="text-muted">Correlation analysis</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 mb-3">
+                                                <div class="viz-type-card text-center p-3 border rounded">
+                                                    <i class="fas fa-th fa-2x text-danger mb-2"></i>
+                                                    <h6>Heat Maps</h6>
+                                                    <small class="text-muted">Correlation matrices</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 mb-3">
+                                                <div class="viz-type-card text-center p-3 border rounded">
+                                                    <i class="fas fa-square fa-2x text-secondary mb-2"></i>
+                                                    <h6>Box Plots</h6>
+                                                    <small class="text-muted">Statistical summaries</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 mb-3">
+                                                <div class="viz-type-card text-center p-3 border rounded">
+                                                    <i class="fas fa-spider fa-2x text-dark mb-2"></i>
+                                                    <h6>Radar Charts</h6>
+                                                    <small class="text-muted">Multi-dimensional analysis</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% else %}
+                        <div class="alert alert-warning mb-4">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
+                                <div>
+                                    <h5 class="alert-heading mb-1">Visualizations Not Yet Generated</h5>
+                                    <p class="mb-0">Visualizations will be automatically created when the dataset processing is complete.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-0">
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-body text-center py-4">
+                                        <i class="fas fa-chart-bar fa-4x text-muted mb-3"></i>
+                                        <h4 class="text-muted">Visualizations Coming Soon</h4>
+                                        <p class="text-muted">Once your dataset is processed, comprehensive visualizations will be available here including:</p>
+                                        <ul class="list-unstyled text-muted">
+                                            <li>• Quality metrics dashboard</li>
+                                            <li>• Data distribution charts</li>
+                                            <li>• Correlation analysis</li>
+                                            <li>• Field type breakdown</li>
+                                            <li>• Interactive data exploration tools</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
                     <!-- FAIR Assessment Tab -->
                     <div class="tab-pane fade" id="fair">
-                        <h3 class="metadata-heading">FAIR Principles Assessment</h3>
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h3 class="metadata-heading mb-0">FAIR Principles Assessment</h3>
+                            {% if current_user.is_authenticated and (current_user == dataset.user or current_user.is_admin) %}
+                            <button onclick="enhanceFairCompliance('{{ dataset.id }}')"
+                                    class="btn btn-success btn-sm"
+                                    id="enhance-fair-btn">
+                                <i class="fas fa-magic me-1"></i>
+                                Enhance FAIR Compliance
+                            </button>
+                            {% endif %}
+                        </div>
+
+                        <!-- Overall FAIR Score -->
+                        <div class="row mb-4">
+                            <div class="col-md-12 mb-4">
+                                <div class="card border-primary">
+                                    <div class="card-header bg-primary text-white text-center">
+                                        <h5 class="mb-0">Overall FAIR Compliance</h5>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        {% set overall_fair_score = dataset.fair_score or 0 %}
+                                        {% set fair_compliant = overall_fair_score >= 75 %}
+                                        <div class="fair-circle mx-auto mb-3" style="width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: conic-gradient({{ '#28a745' if fair_compliant else '#ffc107' }} {{ overall_fair_score * 3.6 }}deg, #e9ecef 0deg);">
+                                            <div class="inner-circle bg-white rounded-circle d-flex align-items-center justify-content-center" style="width: 90px; height: 90px;">
+                                                <h2 class="mb-0 {{ 'text-success' if fair_compliant else 'text-warning' }}">{{ overall_fair_score|int }}%</h2>
+                                            </div>
+                                        </div>
+                                        <h5 class="mb-2 {{ 'text-success' if fair_compliant else 'text-warning' }}">
+                                            {{ 'FAIR Compliant' if fair_compliant else 'Partially Compliant' }}
+                                        </h5>
+                                        <p class="text-muted mb-0">
+                                            {{ 'Meets FAIR principles requirements' if fair_compliant else 'Needs improvement to meet FAIR standards' }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
                         <div class="row mb-4">
                             <div class="col-md-6 mb-4">
@@ -211,11 +2267,11 @@
                                     </div>
                                     <div>
                                         <h5 class="mb-1">Findable</h5>
-                                        <div class="score-text">{{ metadata.findable_score|int }}%</div>
+                                        <div class="score-text">{{ ((dataset.findable_score or 0) * 4)|int if dataset.findable_score else 0 }}%</div>
                                     </div>
                                 </div>
                                 <div class="progress mb-4" style="height: 8px;">
-                                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ metadata.findable_score }}%"></div>
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ ((dataset.findable_score or 0) * 4) if dataset.findable_score else 0 }}%"></div>
                                 </div>
 
                                 <div class="fair-metric accessible">
@@ -224,11 +2280,11 @@
                                     </div>
                                     <div>
                                         <h5 class="mb-1">Accessible</h5>
-                                        <div class="score-text">{{ metadata.accessible_score|int }}%</div>
+                                        <div class="score-text">{{ ((dataset.accessible_score or 0) * 4)|int if dataset.accessible_score else 0 }}%</div>
                                     </div>
                                 </div>
                                 <div class="progress mb-4" style="height: 8px;">
-                                    <div class="progress-bar bg-primary" role="progressbar" style="width: {{ metadata.accessible_score }}%"></div>
+                                    <div class="progress-bar bg-primary" role="progressbar" style="width: {{ ((dataset.accessible_score or 0) * 4) if dataset.accessible_score else 0 }}%"></div>
                                 </div>
                             </div>
 
@@ -239,11 +2295,11 @@
                                     </div>
                                     <div>
                                         <h5 class="mb-1">Interoperable</h5>
-                                        <div class="score-text">{{ metadata.interoperable_score|int }}%</div>
+                                        <div class="score-text">{{ ((dataset.interoperable_score or 0) * 4)|int if dataset.interoperable_score else 0 }}%</div>
                                     </div>
                                 </div>
                                 <div class="progress mb-4" style="height: 8px;">
-                                    <div class="progress-bar bg-warning" role="progressbar" style="width: {{ metadata.interoperable_score }}%"></div>
+                                    <div class="progress-bar bg-warning" role="progressbar" style="width: {{ ((dataset.interoperable_score or 0) * 4) if dataset.interoperable_score else 0 }}%"></div>
                                 </div>
 
                                 <div class="fair-metric reusable">
@@ -252,11 +2308,11 @@
                                     </div>
                                     <div>
                                         <h5 class="mb-1">Reusable</h5>
-                                        <div class="score-text">{{ metadata.reusable_score|int }}%</div>
+                                        <div class="score-text">{{ ((dataset.reusable_score or 0) * 4)|int if dataset.reusable_score else 0 }}%</div>
                                     </div>
                                 </div>
                                 <div class="progress mb-4" style="height: 8px;">
-                                    <div class="progress-bar bg-purple" role="progressbar" style="width: {{ metadata.reusable_score }}%"></div>
+                                    <div class="progress-bar bg-purple" role="progressbar" style="width: {{ ((dataset.reusable_score or 0) * 4) if dataset.reusable_score else 0 }}%"></div>
                                 </div>
                             </div>
                         </div>
@@ -350,12 +2406,179 @@
                 </div>
             </div>
         </div>
+
+        <!-- User Feedback Section -->
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header bg-warning text-dark">
+                        <h6 class="mb-0">
+                            <i class="fas fa-star me-2"></i>
+                            User Feedback & Ratings
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- Rating Summary -->
+                            <div class="col-md-4 mb-3">
+                                <div class="text-center">
+                                    <h3 class="text-warning mb-1" id="avg-rating">
+                                        {% if feedback_summary %}{{ feedback_summary['average_rating'] }}{% else %}0.0{% endif %}
+                                    </h3>
+                                    <div class="rating-stars mb-2" id="rating-stars-display">
+                                        {% if feedback_summary %}
+                                            {% for i in range(1, 6) %}
+                                                {% if i <= feedback_summary['average_rating'] %}
+                                                    <i class="fas fa-star text-warning"></i>
+                                                {% else %}
+                                                    <i class="fas fa-star text-muted"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% else %}
+                                            {% for i in range(1, 6) %}
+                                                <i class="fas fa-star text-muted"></i>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                    <small class="text-muted">
+                                        <span id="total-reviews">
+                                            {% if feedback_summary %}{{ feedback_summary['total_reviews'] }}{% else %}0{% endif %}
+                                        </span> reviews
+                                    </small>
+                                </div>
+                            </div>
+
+                            <!-- Rating Distribution -->
+                            <div class="col-md-4 mb-3">
+                                <h6 class="text-muted mb-3">Rating Distribution</h6>
+                                <div class="rating-distribution">
+                                    {% for i in range(5, 0, -1) %}
+                                    <div class="d-flex align-items-center mb-1">
+                                        <span class="me-2">{{ i }}★</span>
+                                        <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                            {% set rating_count = feedback_summary['rating_distribution'][i] if feedback_summary and feedback_summary['rating_distribution'] else 0 %}
+                                            {% set total_reviews = feedback_summary['total_reviews'] if feedback_summary else 1 %}
+                                            {% set percentage = (rating_count / total_reviews * 100) if total_reviews > 0 else 0 %}
+                                            <div class="progress-bar bg-warning" role="progressbar"
+                                                 style="width: {{ percentage }}%" data-rating="{{ i }}"></div>
+                                        </div>
+                                        <small class="text-muted">{{ rating_count }}</small>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Quick Rating -->
+                            <div class="col-md-4 mb-3">
+                                {% if current_user.is_authenticated %}
+                                <div class="text-center">
+                                    <p class="mb-2"><strong>Rate this dataset:</strong></p>
+                                    <div class="quick-rating">
+                                        {% for i in range(1, 6) %}
+                                            <button class="btn btn-outline-warning btn-sm me-1"
+                                                    onclick="quickRate('{{ dataset.id }}', {{ i }})"
+                                                    title="{{ i }} star{{ 's' if i != 1 else '' }}">
+                                                <i class="fas fa-star"></i>
+                                            </button>
+                                        {% endfor %}
+                                    </div>
+                                    <small class="text-muted d-block mt-1">Click to rate</small>
+                                </div>
+                                {% else %}
+                                <div class="text-center">
+                                    <p class="text-muted">
+                                        <a href="{{ url_for('auth.login') }}" class="text-decoration-none">
+                                            Login to rate this dataset
+                                        </a>
+                                    </p>
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="col-md-4 mb-3">
+                                <div class="text-center">
+                                    {% if current_user.is_authenticated %}
+                                    <a href="{{ url_for('feedback.add_feedback', dataset_id=dataset.id) }}"
+                                       class="btn btn-primary btn-sm mb-2">
+                                        <i class="fas fa-comment me-1"></i>
+                                        Write Review
+                                    </a>
+                                    <br>
+                                    {% endif %}
+                                    <a href="{{ url_for('feedback.view_feedback', dataset_id=dataset.id) }}"
+                                       class="btn btn-outline-secondary btn-sm">
+                                        <i class="fas fa-comments me-1"></i>
+                                        View All Reviews
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Feedback -->
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h6 class="text-muted mb-3">Recent Reviews</h6>
+                                <div id="recent-feedback">
+                                    {% if feedback_summary and feedback_summary['recent_feedback'] %}
+                                        {% for feedback in feedback_summary['recent_feedback'] %}
+                                        <div class="card mb-2">
+                                            <div class="card-body py-2">
+                                                <div class="d-flex justify-content-between align-items-start">
+                                                    <div>
+                                                        <div class="rating-stars mb-1">
+                                                            {% for i in range(1, 6) %}
+                                                                {% if i <= feedback.rating %}
+                                                                    <i class="fas fa-star text-warning"></i>
+                                                                {% else %}
+                                                                    <i class="fas fa-star text-muted"></i>
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                        </div>
+                                                        {% if feedback.comment %}
+                                                        <p class="mb-1 small">{{ feedback.comment[:100] }}{% if feedback.comment|length > 100 %}...{% endif %}</p>
+                                                        {% else %}
+                                                        <p class="mb-1 small text-muted"><em>Quick rating (no comment)</em></p>
+                                                        {% endif %}
+                                                        <small class="text-muted">by {{ feedback.user.username if not feedback.is_anonymous else 'Anonymous' }} • {{ feedback.created_at.strftime('%Y-%m-%d') }}</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <div class="text-center text-muted py-3">
+                                            <i class="fas fa-comments fa-2x mb-2"></i>
+                                            <p>No reviews yet. Be the first to review this dataset!</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
+    // Toggle description visibility
+    function toggleDescription() {
+        const preview = document.getElementById('description-preview');
+        const full = document.getElementById('description-full');
+
+        if (preview.style.display === 'none') {
+            preview.style.display = 'block';
+            full.style.display = 'none';
+        } else {
+            preview.style.display = 'none';
+            full.style.display = 'block';
+        }
+    }
+
     // Copy JSON-LD to clipboard
     document.addEventListener('DOMContentLoaded', function() {
         const copyBtn = document.querySelector('.copy-btn');
@@ -375,6 +2598,342 @@
                 });
             });
         }
+    });
+
+    // Copy Python code to clipboard
+    function copyPythonCode() {
+        const codeElement = document.getElementById('python-code');
+        if (codeElement) {
+            const code = codeElement.textContent;
+            navigator.clipboard.writeText(code).then(function() {
+                // Show success message
+                const button = event.target.closest('button');
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check me-1"></i>Copied!';
+                button.classList.remove('btn-outline-primary');
+                button.classList.add('btn-success');
+
+                setTimeout(function() {
+                    button.innerHTML = originalText;
+                    button.classList.remove('btn-success');
+                    button.classList.add('btn-outline-primary');
+                }, 2000);
+            }).catch(function(err) {
+                console.error('Failed to copy code: ', err);
+                alert('Failed to copy code to clipboard');
+            });
+        }
+    }
+
+
+
+    function updateRatingDisplay(feedbackData) {
+        // Update average rating
+        const avgRatingElement = document.getElementById('avg-rating');
+        if (avgRatingElement && feedbackData.average_rating !== undefined) {
+            avgRatingElement.textContent = feedbackData.average_rating.toFixed(1);
+        }
+
+        // Update total reviews
+        const totalReviewsElement = document.getElementById('total-reviews');
+        if (totalReviewsElement && feedbackData.total_reviews !== undefined) {
+            totalReviewsElement.textContent = feedbackData.total_reviews;
+        }
+
+        // Update rating stars display
+        const ratingStars = document.querySelector('.rating-stars');
+        if (ratingStars && feedbackData.average_rating !== undefined) {
+            updateStarsDisplay(ratingStars, feedbackData.average_rating);
+        }
+    }
+
+    function updateQuickRatingButtons(selectedRating) {
+        // Highlight the selected rating button
+        const ratingButtons = document.querySelectorAll('.quick-rating button');
+        ratingButtons.forEach((button, index) => {
+            const rating = index + 1;
+            if (rating <= selectedRating) {
+                button.classList.remove('btn-outline-warning');
+                button.classList.add('btn-warning');
+            } else {
+                button.classList.remove('btn-warning');
+                button.classList.add('btn-outline-warning');
+            }
+        });
+    }
+
+    function updateStarsDisplay(container, rating) {
+        const stars = container.querySelectorAll('i.fas.fa-star');
+        stars.forEach((star, index) => {
+            if (index < Math.floor(rating)) {
+                star.classList.remove('text-muted');
+                star.classList.add('text-warning');
+            } else if (index < rating) {
+                star.classList.remove('text-muted');
+                star.classList.add('text-warning');
+                star.style.opacity = '0.5'; // Half star effect
+            } else {
+                star.classList.remove('text-warning');
+                star.classList.add('text-muted');
+                star.style.opacity = '1';
+            }
+        });
+    }
+
+    // Load initial rating data
+    function loadInitialRatingData(datasetId) {
+        fetch(`/api/dataset/${datasetId}/rating`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.data) {
+                updateRatingDisplay(data.data);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading rating data:', error);
+        });
+    }
+
+    // Initialize rating data when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        const datasetId = '{{ dataset.id }}';
+        if (datasetId) {
+            loadInitialRatingData(datasetId);
+        }
+    });
+
+    // FAIR Enhancement function
+    function enhanceFairCompliance(datasetId) {
+        const button = document.getElementById('enhance-fair-btn');
+        if (button) {
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Enhancing...';
+        }
+
+        fetch(`/api/datasets/${datasetId}/enhance-fair`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || ''
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                showToast(`FAIR compliance enhanced! Score improved by ${data.improvement.toFixed(1)} points.`, 'success');
+                // Reload the page to show updated scores
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            } else {
+                showToast(data.message || 'Failed to enhance FAIR compliance', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error enhancing FAIR compliance:', error);
+            showToast('Error enhancing FAIR compliance. Please try again.', 'error');
+        })
+        .finally(() => {
+            if (button) {
+                button.disabled = false;
+                button.innerHTML = '<i class="fas fa-magic me-1"></i>Enhance FAIR Compliance';
+            }
+        });
+    }
+
+    function showToast(message, type) {
+        // Simple toast notification
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} position-fixed`;
+        toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        toast.innerHTML = `
+            <div class="d-flex align-items-center">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close ms-auto" onclick="this.parentElement.parentElement.remove()"></button>
+            </div>
+        `;
+        document.body.appendChild(toast);
+
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            if (toast.parentElement) {
+                toast.remove();
+            }
+        }, 3000);
+    }
+
+    // Quick rating function
+    function quickRate(datasetId, rating) {
+        if (!datasetId || !rating) {
+            showToast('Invalid rating parameters', 'error');
+            return;
+        }
+
+        fetch(`/feedback/quick-rate/${datasetId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || ''
+            },
+            body: JSON.stringify({ rating: rating })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                showToast(`Thank you for rating this dataset ${rating} star${rating !== 1 ? 's' : ''}!`, 'success');
+                // Update the rating display
+                updateRatingDisplay(data.new_average, data.total_reviews);
+            } else {
+                showToast(data.message || 'Failed to submit rating', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error submitting rating:', error);
+            showToast('Error submitting rating', 'error');
+        });
+    }
+
+    // Update rating display
+    function updateRatingDisplay(newAverage, totalReviews) {
+        const avgRatingElement = document.getElementById('avg-rating');
+        const totalReviewsElement = document.getElementById('total-reviews');
+        const starsDisplay = document.getElementById('rating-stars-display');
+
+        if (avgRatingElement) {
+            avgRatingElement.textContent = newAverage.toFixed(1);
+        }
+
+        if (totalReviewsElement) {
+            totalReviewsElement.textContent = totalReviews;
+        }
+
+        if (starsDisplay) {
+            // Update star display
+            const stars = starsDisplay.querySelectorAll('i');
+            stars.forEach((star, index) => {
+                if (index < Math.round(newAverage)) {
+                    star.className = 'fas fa-star text-warning';
+                } else {
+                    star.className = 'fas fa-star text-muted';
+                }
+            });
+        }
+    }
+
+    // Function to hide empty sections and reduce blank space
+    function hideEmptySections() {
+        console.log('🔍 Starting empty section detection...');
+
+        // Hide specific tab panes that have no meaningful content
+        $('.tab-pane').each(function() {
+            const $tabPane = $(this);
+            const tabId = $tabPane.attr('id');
+            let hasContent = false;
+
+            // Check for specific empty states based on tab content
+            if (tabId === 'quality-report') {
+                // Check if quality metadata exists - look for actual quality scores
+                const hasQualityScore = $tabPane.find('.quality-circle').length > 0;
+                const hasQualityMetrics = $tabPane.find('.quality-metric').length > 0;
+                const hasAlertInfo = $tabPane.find('.alert-info').length > 0;
+                hasContent = (hasQualityScore || hasQualityMetrics) && !hasAlertInfo;
+                console.log(`Quality Report - Score: ${hasQualityScore}, Metrics: ${hasQualityMetrics}, Alert: ${hasAlertInfo}, HasContent: ${hasContent}`);
+            } else if (tabId === 'health-report') {
+                // Check if health data exists
+                const hasHealthIndicator = $tabPane.find('.health-indicator').length > 0;
+                const hasHealthMetrics = $tabPane.find('.health-metric').length > 0;
+                const hasAlertInfo = $tabPane.find('.alert-info').length > 0;
+                hasContent = (hasHealthIndicator || hasHealthMetrics) && !hasAlertInfo;
+                console.log(`Health Report - Indicator: ${hasHealthIndicator}, Metrics: ${hasHealthMetrics}, Alert: ${hasAlertInfo}, HasContent: ${hasContent}`);
+            } else if (tabId === 'fair') {
+                // Check if FAIR data exists - look for actual FAIR scores
+                const hasFairCircle = $tabPane.find('.fair-circle').length > 0;
+                const hasFairMetrics = $tabPane.find('.fair-metric').length > 0;
+                const hasAlertInfo = $tabPane.find('.alert-info').length > 0;
+                hasContent = (hasFairCircle || hasFairMetrics) && !hasAlertInfo;
+                console.log(`FAIR Assessment - Circle: ${hasFairCircle}, Metrics: ${hasFairMetrics}, Alert: ${hasAlertInfo}, HasContent: ${hasContent}`);
+            } else if (tabId === 'visualizations') {
+                // Check if visualizations exist
+                const hasCharts = $tabPane.find('.chart-container').length > 0;
+                const hasCanvas = $tabPane.find('canvas').length > 0;
+                const hasVizButton = $tabPane.find('a[href*="visualizations"]').length > 0;
+                hasContent = hasCharts || hasCanvas || hasVizButton;
+                console.log(`Visualizations - Charts: ${hasCharts}, Canvas: ${hasCanvas}, Button: ${hasVizButton}, HasContent: ${hasContent}`);
+            } else {
+                // For other tabs, check if there's meaningful content
+                const $content = $tabPane.find('.card-body, .alert, .tab-content');
+                const textContent = $content.text().trim();
+                const hasAlertInfo = $tabPane.find('.alert-info').length > 0;
+                const hasPendingMessage = textContent.includes('will be available once') ||
+                                        textContent.includes('Pending') ||
+                                        textContent.includes('Not available') ||
+                                        textContent.includes('No data available');
+
+                hasContent = textContent.length > 50 && !hasAlertInfo && !hasPendingMessage;
+                console.log(`${tabId} - Text length: ${textContent.length}, Alert: ${hasAlertInfo}, Pending: ${hasPendingMessage}, HasContent: ${hasContent}`);
+            }
+
+            // Hide the tab pane and corresponding nav item if no content
+            if (!hasContent) {
+                $tabPane.addClass('empty-tab-pane');
+                $tabPane.css('display', 'none');
+
+                // Also hide the corresponding nav tab
+                const $navItem = $(`a[href="#${tabId}"]`).closest('.list-group-item');
+                $navItem.addClass('empty-tab-nav');
+                $navItem.css('display', 'none');
+
+                console.log(`✅ Hidden empty tab: ${tabId}`);
+            } else {
+                console.log(`✅ Keeping tab with content: ${tabId}`);
+            }
+        });
+
+        // Ensure at least one tab is visible and active
+        const $visibleTabs = $('.list-group-item:visible');
+        if ($visibleTabs.length > 0) {
+            // If current active tab is hidden, activate the first visible one
+            const $activeTab = $('.list-group-item.active');
+            if ($activeTab.length === 0 || !$activeTab.is(':visible')) {
+                $visibleTabs.first().addClass('active');
+                const firstTabHref = $visibleTabs.first().find('a').attr('href');
+                if (firstTabHref) {
+                    $(firstTabHref).addClass('show active');
+                }
+                console.log('✅ Activated first visible tab');
+            }
+        }
+
+        console.log('✅ Empty sections hidden and layout optimized');
+    }
+
+    // Document ready function
+    $(document).ready(function() {
+        // Initialize tooltips
+        $('[data-bs-toggle="tooltip"]').tooltip();
+
+        // Load feedback data
+        loadFeedbackData('{{ dataset.id }}');
+
+        // Initialize export functionality
+        initializeExportFunctionality();
+
+        // Hide empty sections to reduce blank space
+        hideEmptySections();
+
+        // Re-run after a short delay to catch dynamically loaded content
+        setTimeout(hideEmptySections, 1000);
     });
 </script>
 {% endblock %}

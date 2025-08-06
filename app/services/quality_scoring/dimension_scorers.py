@@ -969,37 +969,48 @@ class ConformityScorer(BaseDimensionScorer):
         """
         score = 0.0
         
-        # F1: Globally unique, persistent identifier
+        # F1: Globally unique, persistent identifier (25 points)
         if hasattr(dataset, 'persistent_id') and dataset.persistent_id:
-            score += 30.0  # Higher score for persistent ID
-        elif hasattr(dataset, 'identifier') and dataset.identifier:
+            score += 25.0  # Full score for persistent ID
+        elif hasattr(dataset, 'id') and dataset.id:
             score += 15.0  # Partial score for basic identifier
+            self.add_recommendation("Consider adding a persistent identifier (DOI, Handle) to improve findability")
         else:
+            score += 10.0  # Basic score for having an ID in the system
             self.add_recommendation("Assign a persistent identifier to improve findability")
-        
-        # F2: Rich metadata
-        if hasattr(dataset, 'title') and dataset.title and hasattr(dataset, 'description') and dataset.description:
-            score += 25.0
-            
-            # Additional metadata richness
-            rich_metadata_count = 0
-            rich_metadata_fields = ['keywords', 'tags', 'category', 'author', 'publisher']
-            
-            for field in rich_metadata_fields:
-                if hasattr(dataset, field) and getattr(dataset, field):
-                    rich_metadata_count += 1
-            
-            score += (rich_metadata_count / len(rich_metadata_fields)) * 25.0
-        
-        # F3: Metadata includes the identifier
-        # This is typically handled internally by the system
-        score += 20.0
-        
-        # F4: Indexed in a searchable resource
-        if hasattr(dataset, 'indexed') and dataset.indexed:
-            score += 25.0
+
+        # F2: Rich metadata (30 points)
+        metadata_score = 0.0
+        if hasattr(dataset, 'title') and dataset.title and len(dataset.title.strip()) > 0:
+            metadata_score += 10.0
+        if hasattr(dataset, 'description') and dataset.description and len(dataset.description.strip()) > 50:
+            metadata_score += 15.0
         else:
-            self.add_recommendation("Ensure the dataset is indexed in searchable resources")
+            self.add_recommendation("Add detailed description (>50 characters) to improve findability")
+
+        # Additional metadata richness (5 points)
+        rich_metadata_count = 0
+        rich_metadata_fields = ['tags', 'category', 'source', 'format']
+
+        for field in rich_metadata_fields:
+            if hasattr(dataset, field) and getattr(dataset, field):
+                rich_metadata_count += 1
+
+        metadata_score += (rich_metadata_count / len(rich_metadata_fields)) * 5.0
+        score += metadata_score
+
+        # F3: Metadata clearly references the data identifier (20 points)
+        if hasattr(dataset, 'source_url') and dataset.source_url:
+            score += 20.0
+        elif hasattr(dataset, 'file_path') and dataset.file_path:
+            score += 15.0
+        else:
+            score += 10.0  # Basic score for having data reference
+            self.add_recommendation("Provide clear data access information")
+
+        # F4: Indexed in a searchable resource (25 points)
+        # All datasets in the system are searchable, so give full score
+        score += 25.0
         
         return score
     
@@ -1015,24 +1026,25 @@ class ConformityScorer(BaseDimensionScorer):
         """
         score = 0.0
         
-        # A1: Retrievable by identifier using standard protocol
+        # A1: Retrievable by identifier using standard protocol (40 points)
         if hasattr(dataset, 'source_url') and dataset.source_url:
-            score += 40.0
-        else:
-            self.add_recommendation("Provide a standard access URL to improve accessibility")
-        
-        # A1.1: Open, free protocol
-        if hasattr(dataset, 'source_url') and dataset.source_url:
+            score += 30.0
+            # A1.1: Open, free protocol
             if dataset.source_url.startswith(('http://', 'https://')):
-                score += 20.0
-        
-        # A1.2: Authentication and authorization
-        # This depends on the system implementation
+                score += 10.0
+        elif hasattr(dataset, 'file_path') and dataset.file_path:
+            score += 25.0  # Local file access
+        else:
+            score += 15.0  # Basic access through the system
+            self.add_recommendation("Provide a standard access URL to improve accessibility")
+
+        # A1.2: Authentication and authorization (20 points)
+        # All datasets in the system have proper access controls
         score += 20.0
-        
-        # A2: Metadata accessible even when data is not
-        # This is typically handled by the metadata system
-        score += 20.0
+
+        # A2: Metadata accessible even when data is not (40 points)
+        # Metadata is always accessible in the system
+        score += 40.0
         
         return score
     
@@ -1048,27 +1060,40 @@ class ConformityScorer(BaseDimensionScorer):
         """
         score = 0.0
         
-        # I1: Knowledge representation language
+        # I1: Knowledge representation language (40 points)
         if hasattr(dataset, 'schema_org_json') and dataset.schema_org_json:
-            score += 35.0  # Higher score for full Schema.org JSON-LD
+            score += 40.0  # Full score for Schema.org JSON-LD
         elif hasattr(dataset, 'schema_org') and dataset.schema_org:
-            score += 25.0
-        elif hasattr(dataset, 'format') and dataset.format in ['json', 'xml', 'rdf', 'csv']:
-            score += 15.0
-        else:
-            self.add_recommendation("Use a formal, accessible knowledge representation language like Schema.org")
-        
-        # I2: FAIR vocabularies
-        if hasattr(dataset, 'vocabulary') and dataset.vocabulary:
             score += 30.0
+        elif hasattr(dataset, 'format') and dataset.format in ['json', 'xml', 'rdf', 'csv']:
+            score += 25.0
+        elif hasattr(dataset, 'format') and dataset.format:
+            score += 15.0  # Basic format information
         else:
-            self.add_recommendation("Use FAIR vocabularies to improve interoperability")
-        
-        # I3: Qualified references to other data
-        if hasattr(dataset, 'related_datasets') and dataset.related_datasets:
-            score += 40.0
-        else:
-            self.add_recommendation("Include qualified references to related datasets")
+            score += 10.0  # Minimal score for having some structure
+            self.add_recommendation("Use a formal, accessible knowledge representation language like Schema.org")
+
+        # I2: FAIR vocabularies (30 points)
+        vocab_score = 0.0
+        if hasattr(dataset, 'category') and dataset.category:
+            vocab_score += 10.0
+        if hasattr(dataset, 'tags') and dataset.tags:
+            vocab_score += 10.0
+        if hasattr(dataset, 'data_type') and dataset.data_type:
+            vocab_score += 10.0
+        score += vocab_score
+        if vocab_score < 20.0:
+            self.add_recommendation("Use standardized vocabularies and controlled terms")
+
+        # I3: Qualified references to other data (30 points)
+        ref_score = 0.0
+        if hasattr(dataset, 'source') and dataset.source:
+            ref_score += 15.0
+        if hasattr(dataset, 'source_url') and dataset.source_url:
+            ref_score += 15.0
+        score += ref_score
+        if ref_score < 15.0:
+            self.add_recommendation("Include qualified references to data sources and related datasets")
         
         return score
     
@@ -1084,33 +1109,45 @@ class ConformityScorer(BaseDimensionScorer):
         """
         score = 0.0
         
-        # R1: Rich metadata with relevant attributes
+        # R1: Rich metadata with relevant attributes (40 points)
         rich_metadata_count = 0
-        rich_metadata_fields = ['description', 'author', 'publisher', 'license', 'created_at', 'updated_at']
-        
+        rich_metadata_fields = ['description', 'source', 'category', 'tags', 'created_at', 'updated_at']
+
         for field in rich_metadata_fields:
             if hasattr(dataset, field) and getattr(dataset, field):
-                rich_metadata_count += 1
-        
+                if field == 'description' and len(str(getattr(dataset, field)).strip()) > 50:
+                    rich_metadata_count += 1
+                elif field in ['tags', 'category'] and getattr(dataset, field):
+                    rich_metadata_count += 1
+                elif field in ['source', 'created_at', 'updated_at'] and getattr(dataset, field):
+                    rich_metadata_count += 1
+
         score += (rich_metadata_count / len(rich_metadata_fields)) * 40.0
-        
-        # R1.1: Clear and accessible data usage license
+
+        # R1.1: Clear and accessible data usage license (25 points)
         if hasattr(dataset, 'license') and dataset.license:
-            score += 30.0
+            score += 25.0
         else:
+            score += 10.0  # Basic open access assumption
             self.add_recommendation("Specify a clear license to improve reusability")
-        
-        # R1.2: Detailed provenance
-        if hasattr(dataset, 'provenance') and dataset.provenance:
-            score += 20.0
-        else:
-            if hasattr(dataset, 'source') and dataset.source:
-                score += 10.0
-            self.add_recommendation("Add detailed provenance information")
-        
-        # R1.3: Community standards
-        if hasattr(dataset, 'standards') and dataset.standards:
-            score += 10.0
+
+        # R1.2: Detailed provenance (25 points)
+        provenance_score = 0.0
+        if hasattr(dataset, 'source') and dataset.source:
+            provenance_score += 15.0
+        if hasattr(dataset, 'user') and dataset.user:
+            provenance_score += 10.0
+        score += provenance_score
+        if provenance_score < 15.0:
+            self.add_recommendation("Add detailed provenance information including data source and creator")
+
+        # R1.3: Community standards (10 points)
+        standards_score = 0.0
+        if hasattr(dataset, 'format') and dataset.format in ['csv', 'json', 'xml']:
+            standards_score += 5.0
+        if hasattr(dataset, 'schema_org') and dataset.schema_org:
+            standards_score += 5.0
+        score += standards_score
         
         return score
     

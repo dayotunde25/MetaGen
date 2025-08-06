@@ -2,6 +2,7 @@
 Dataset model and related database operations.
 """
 
+import os
 from datetime import datetime
 from typing import List, Optional, Dict, Any, Union
 
@@ -41,13 +42,16 @@ class Dataset(Document):
 
     title = StringField(max_length=255, required=True)
     description = StringField()
-    source = StringField(max_length=128, required=True)
+    source = StringField(max_length=128)
     source_url = StringField(max_length=512)
     data_type = StringField(max_length=50)
     category = StringField(max_length=50)
     format = StringField(max_length=20)
     size = StringField(max_length=20)
     record_count = IntField()
+    field_count = IntField()  # Number of fields/columns in the dataset
+    field_names = StringField()  # Comma-separated list of field names
+    data_types = StringField()  # Comma-separated list of data types
     file_path = StringField(max_length=512)  # Path to uploaded file
     created_at = DateTimeField(default=datetime.utcnow)
     updated_at = DateTimeField(default=datetime.utcnow)
@@ -59,6 +63,7 @@ class Dataset(Document):
     spatial_coverage = StringField()
     tags = StringField(max_length=255)
     keywords = StringField()
+    use_cases = StringField()  # Comma-separated list of use case suggestions
     schema_org = StringField()
     processed = BooleanField(default=False)
     update_frequency = StringField(max_length=50)
@@ -91,6 +96,33 @@ class Dataset(Document):
     fair_score = FloatField(default=0.0)
     schema_org_score = FloatField(default=0.0)
     structured_description = StringField()  # JSON string of structured description
+    visualizations = StringField()  # JSON string of visualization data
+    python_analysis_code = StringField()  # Generated Python code for dataset analysis
+
+    # FAIR Compliance Fields
+    persistent_identifier = StringField()  # DOI or similar persistent ID
+    fair_metadata = StringField()  # JSON string of FAIR metadata
+    dublin_core = StringField()  # JSON string of Dublin Core metadata
+    dcat_metadata = StringField()  # JSON string of DCAT metadata
+    json_ld = StringField()  # JSON-LD structured data
+    fair_compliant = BooleanField(default=False)  # Overall FAIR compliance status
+
+    # Individual FAIR scores
+    fair_score = FloatField(default=0.0)  # Overall FAIR score percentage
+    findable_score = FloatField(default=0.0)  # Findable score percentage
+    accessible_score = FloatField(default=0.0)  # Accessible score percentage
+    interoperable_score = FloatField(default=0.0)  # Interoperable score percentage
+    reusable_score = FloatField(default=0.0)  # Reusable score percentage
+
+    # Privacy and access control
+    private = BooleanField(default=False)  # Whether dataset is private
+
+    # Collection and grouping fields
+    is_collection = BooleanField(default=False)  # Whether this is a collection of datasets
+    collection_id = StringField(max_length=100)  # ID linking related datasets
+    parent_collection = ReferenceField('Dataset')  # Reference to parent collection
+    collection_files = StringField()  # JSON string of files in collection
+    auto_generated_title = BooleanField(default=False)  # Whether title was auto-generated
 
     # Reference to User
     user = ReferenceField('User')
@@ -151,6 +183,48 @@ class Dataset(Document):
         Returns:
             New Dataset instance
         """
+        # Handle auto-generation of missing fields
+        if not kwargs.get('source'):
+            # Generate default source from filename or user
+            file_path = kwargs.get('file_path', '')
+            if file_path:
+                filename = os.path.basename(file_path)
+                kwargs['source'] = f"User upload: {filename}"
+            else:
+                user = kwargs.get('user')
+                username = user.username if user else 'Unknown'
+                kwargs['source'] = f"Uploaded by {username}"
+
+        # Generate default title if not provided
+        if not kwargs.get('title'):
+            file_path = kwargs.get('file_path', '')
+            if file_path:
+                filename = os.path.basename(file_path)
+                # Remove extension and clean up filename
+                title = os.path.splitext(filename)[0]
+                title = title.replace('_', ' ').replace('-', ' ').title()
+                kwargs['title'] = title
+            else:
+                kwargs['title'] = "Untitled Dataset"
+
+        # Generate default category if not provided
+        if not kwargs.get('category'):
+            kwargs['category'] = "General"
+
+        # Generate default data_type if not provided
+        if not kwargs.get('data_type'):
+            file_format = kwargs.get('format', '').lower()
+            if file_format in ['csv', 'tsv']:
+                kwargs['data_type'] = "Tabular"
+            elif file_format in ['json', 'jsonl']:
+                kwargs['data_type'] = "JSON"
+            elif file_format in ['xml']:
+                kwargs['data_type'] = "XML"
+            elif file_format in ['xlsx', 'xls']:
+                kwargs['data_type'] = "Spreadsheet"
+            else:
+                kwargs['data_type'] = "Other"
+
         dataset = cls(**kwargs)
         dataset.save()
         return dataset
@@ -226,6 +300,35 @@ class Dataset(Document):
             search_filter = search_filter & Q(data_type=data_type)
 
         return list(cls.objects(search_filter).order_by('-created_at'))
+
+    @classmethod
+    def find_by_collection_id(cls, collection_id: str) -> Optional['Dataset']:
+        """
+        Find the parent collection dataset by collection ID.
+
+        Args:
+            collection_id: Collection ID to search for
+
+        Returns:
+            Parent collection dataset or None
+        """
+        try:
+            return cls.objects(collection_id=collection_id, is_collection=True).first()
+        except cls.DoesNotExist:
+            return None
+
+    @classmethod
+    def get_collection_datasets(cls, collection_id: str) -> List['Dataset']:
+        """
+        Get all datasets in a collection.
+
+        Args:
+            collection_id: Collection ID to search for
+
+        Returns:
+            List of datasets in the collection
+        """
+        return list(cls.objects(collection_id=collection_id, is_collection=False).order_by('created_at'))
 
     def update(self, **kwargs) -> 'Dataset':
         """

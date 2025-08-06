@@ -14,17 +14,32 @@ pymongo==4.5.0
 pandas==2.1.1
 numpy==1.24.3
 openpyxl==3.1.2
+xlrd==2.0.1
 lxml==4.9.3
 
 # Machine Learning and NLP
 scikit-learn==1.3.0
 sentence-transformers==2.2.2
-transformers==4.33.2
-torch==2.0.1
+transformers==4.35.2
+torch==2.1.0
+spacy==3.7.2
+nltk==3.8.1
+
+# Free AI Models
+mistralai==0.4.2
+groq==0.4.1
+requests==2.31.0
+httpx==0.25.0
 
 # PDF Generation and Utilities
 reportlab==4.0.4
 Pillow==10.0.0
+markdown==3.5.1
+
+# Background Processing
+celery==5.3.1
+redis==4.6.0
+kombu==5.3.1
 
 # Utilities
 python-dotenv==1.0.0
@@ -33,3 +48,4 @@ python-dateutil==2.8.2
 # Optional Performance Enhancements (uncomment if needed)
 # faiss-cpu==1.7.4
 # accelerate==0.21.0
+Faker==25.2.0

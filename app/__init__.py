@@ -47,16 +47,28 @@ def create_app(config_class=Config):
     # Initialize dataset service
     get_dataset_service(app.config['UPLOAD_FOLDER'])
 
+    # Initialize FAIR enhancement service
+    from app.services.fair_enhancement_service import get_fair_enhancement_service
+    get_fair_enhancement_service()
+
+    # Initialize admin user (only if MongoDB is connected)
+    try:
+        init_admin_user()
+    except Exception as e:
+        print(f"⚠️  Could not initialize admin user: {e}")
+
     # Register blueprints
     from app.routes.auth import auth_bp
     from app.routes.main import main_bp
     from app.routes.datasets import datasets_bp
     from app.routes.reports import reports_bp
+    from app.routes.feedback import feedback_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(datasets_bp)
     app.register_blueprint(reports_bp)
+    app.register_blueprint(feedback_bp)
 
     # Configure template context
     @app.context_processor
@@ -74,6 +86,19 @@ def create_app(config_class=Config):
             return json.loads(json_str)
         except (json.JSONDecodeError, TypeError):
             return {}
+
+    @app.template_filter('fair_status_text')
+    def fair_status_text_filter(fair_score, fair_compliant=None):
+        """Get FAIR status text based on score"""
+        if fair_score is None:
+            return "Unknown"
+
+        if fair_score >= 80.0:
+            return "FAIR Compliant"
+        elif fair_score >= 50.0:
+            return "Partially Compliant"
+        else:
+            return "Not Compliant"
 
     # Register error handlers
     register_error_handlers(app)
@@ -112,6 +137,33 @@ from app.models.metadata import MetadataQuality, ProcessingQueue
 
 # Import render_template for error handlers
 from flask import render_template
+
+# Initialize default admin user
+def init_admin_user():
+    """Initialize default admin user if it doesn't exist"""
+    try:
+        from app.models.user import User
+
+        # Check if admin user already exists
+        admin_user = User.find_by_username('admin')
+
+        if not admin_user:
+            # Create default admin user
+            admin_user = User.create(
+                username='admin',
+                email='admin@aimetaharvest.local',
+                password='admin123',
+                is_admin=True
+            )
+            print("✅ Default admin user created: admin / admin123")
+            return admin_user
+        else:
+            print("ℹ️  Admin user already exists")
+            return admin_user
+
+    except Exception as e:
+        print(f"⚠️  Error creating admin user: {e}")
+        return None
 
 # Simple sample data initialization function
 def init_sample_data():

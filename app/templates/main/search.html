@@ -25,7 +25,7 @@
                     </div>
                 </div>
                 <div class="d-flex justify-content-end mt-3">
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary" id="searchButton">
                         <i class="fas fa-search me-1"></i> Search
                     </button>
                 </div>
@@ -82,15 +82,38 @@
         <div class="card-body">
             {% if results %}
                 <div class="list-group">
-                    {% for dataset in results %}
+                    {% for result in results %}
+                    {% set dataset = result.dataset if result.dataset is defined else result %}
                     <div class="search-result mb-3">
                         <div class="d-flex align-items-start">
                             <div class="flex-grow-1">
-                                <h5 class="mb-1">
-                                    <a href="{{ url_for('datasets.view', dataset_id=dataset.id) }}" class="text-decoration-none">
-                                        {{ dataset.title }}
-                                    </a>
-                                </h5>
+                                <div class="d-flex justify-content-between align-items-start mb-1">
+                                    <h5 class="mb-0">
+                                        <a href="{{ url_for('datasets.view', dataset_id=dataset.id) }}" class="text-decoration-none">
+                                            {{ dataset.title }}
+                                        </a>
+                                    </h5>
+                                    {% if result.quality_score is defined %}
+                                    <div class="ms-2">
+                                        <span class="badge {{ 'bg-success' if result.quality_score >= 80 else ('bg-warning' if result.quality_score >= 60 else 'bg-secondary') }}">
+                                            Quality: {{ result.quality_score|int }}%
+                                        </span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                {% if result.score is defined and result.score > 0 %}
+                                <div class="mb-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-chart-line me-1"></i>
+                                        Relevance: {{ (result.score * 100)|int }}%
+                                        {% if result.relevance_explanation %}
+                                        | {{ result.relevance_explanation }}
+                                        {% endif %}
+                                    </small>
+                                </div>
+                                {% endif %}
+
                                 <p class="mb-2">{{ dataset.description[:200] if dataset.description else 'No description available' }}{% if dataset.description and dataset.description|length > 200 %}...{% endif %}</p>
                                 <div class="d-flex flex-wrap align-items-center mb-2">
                                     {% if dataset.category %}
@@ -230,4 +253,93 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchForm = document.getElementById('searchForm');
+    const searchButton = document.getElementById('searchButton');
+
+    if (searchForm && searchButton) {
+        searchForm.addEventListener('submit', function(e) {
+            const queryInput = document.querySelector('input[name="query"]');
+            const query = queryInput ? queryInput.value.trim() : '';
+
+            if (query) {
+                // Show enhanced search loading with query details
+                const loaderId = window.smartLoader.showSearchLoader(query);
+
+                // Update button state
+                searchButton.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Searching...';
+                searchButton.disabled = true;
+
+                // Store loader ID for cleanup
+                window.currentSearchLoader = loaderId;
+
+                // Add timeout fallback in case page doesn't redirect
+                setTimeout(() => {
+                    if (window.currentSearchLoader) {
+                        window.smartLoader.hide(window.currentSearchLoader);
+                        searchButton.innerHTML = '<i class="fas fa-search me-1"></i> Search';
+                        searchButton.disabled = false;
+                    }
+                }, 10000); // 10 second timeout
+            }
+        });
+    }
+
+    // Enhanced loading for pagination links
+    const paginationLinks = document.querySelectorAll('.pagination .page-link');
+    paginationLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            const url = this.getAttribute('href');
+            if (url && url !== '#') {
+                const urlParams = new URLSearchParams(url.split('?')[1]);
+                const query = urlParams.get('query');
+
+                if (query) {
+                    const loaderId = window.smartLoader.showSearchLoader(query);
+                    window.currentSearchLoader = loaderId;
+                }
+            }
+        });
+    });
+
+    // Enhanced loading for tag links
+    const tagLinks = document.querySelectorAll('.badge.bg-primary[href*="search"]');
+    tagLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            const url = this.getAttribute('href');
+            if (url) {
+                const urlParams = new URLSearchParams(url.split('?')[1]);
+                const query = urlParams.get('query');
+
+                if (query) {
+                    const loaderId = window.smartLoader.showSearchLoader(query);
+                    window.currentSearchLoader = loaderId;
+                }
+            }
+        });
+    });
+
+    // Real-time search suggestions (optional enhancement)
+    const queryInput = document.querySelector('input[name="query"]');
+    if (queryInput) {
+        let searchTimeout;
+
+        queryInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            const query = this.value.trim();
+
+            if (query.length >= 3) {
+                searchTimeout = setTimeout(() => {
+                    // Could implement live search suggestions here
+                    console.log('Could show search suggestions for:', query);
+                }, 500);
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

@@ -1,0 +1,554 @@
+{% extends "base.html" %}
+
+{% block title %}FAIR Compliance - {{ dataset.title }}{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('datasets.list') }}">Datasets</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('datasets.view', dataset_id=dataset.id) }}">{{ dataset.title }}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">FAIR Compliance</li>
+                </ol>
+            </nav>
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h1 class="mb-0">
+                        <i class="fas fa-balance-scale text-primary me-2"></i>
+                        FAIR Compliance Report
+                    </h1>
+                    <p class="text-muted">{{ dataset.title }}</p>
+                </div>
+                <div class="dropdown">
+                    <button class="btn btn-primary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown">
+                        <i class="fas fa-download me-2"></i>
+                        Export Metadata
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{{ url_for('datasets.api_fair_metadata', dataset_id=dataset.id, format='dublin-core') }}" target="_blank">
+                            <i class="fas fa-tags me-2"></i> Dublin Core JSON
+                        </a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('datasets.api_fair_metadata', dataset_id=dataset.id, format='dcat') }}" target="_blank">
+                            <i class="fas fa-sitemap me-2"></i> DCAT JSON
+                        </a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('datasets.api_fair_metadata', dataset_id=dataset.id, format='json-ld') }}" target="_blank">
+                            <i class="fas fa-code me-2"></i> JSON-LD
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{{ url_for('datasets.api_fair_metadata', dataset_id=dataset.id, format='fair') }}" target="_blank">
+                            <i class="fas fa-database me-2"></i> Complete FAIR Metadata
+                        </a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAIR Compliance Status -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-lg-3 text-center">
+                            {% set fair_status_text = (dataset.fair_score or 0) | fair_status_text %}
+                            <div class="compliance-status-circle
+                                {% if (dataset.fair_score or 0) >= 80 %}bg-success{% elif (dataset.fair_score or 0) >= 50 %}bg-warning{% else %}bg-danger{% endif %}">
+                                <i class="fas {% if (dataset.fair_score or 0) >= 80 %}fa-check{% elif (dataset.fair_score or 0) >= 50 %}fa-exclamation-triangle{% else %}fa-times{% endif %} fa-2x"></i>
+                            </div>
+                            <h4 class="mt-3">{{ fair_status_text }}</h4>
+                            <p class="text-muted">Score: {{ "%.1f"|format(dataset.fair_score or 0) }}%</p>
+                            {% if dataset.persistent_identifier %}
+                            <p class="text-muted small">
+                                <strong>Persistent ID:</strong><br>
+                                <code>{{ dataset.persistent_identifier }}</code>
+                            </p>
+                            {% endif %}
+                        </div>
+                        <div class="col-lg-9">
+                            <h4>FAIR Data Principles Assessment</h4>
+                            <p>
+                                The FAIR Data Principles are a set of guiding principles to make data 
+                                <strong>Findable</strong>, <strong>Accessible</strong>, <strong>Interoperable</strong>, 
+                                and <strong>Reusable</strong>. This assessment evaluates how well this dataset 
+                                adheres to these principles.
+                            </p>
+                            
+                            {% if dataset.fair_compliant %}
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle me-2"></i>
+                                <strong>Congratulations!</strong> This dataset meets the FAIR principles requirements 
+                                and includes comprehensive metadata for maximum discoverability and reusability.
+                            </div>
+                            {% else %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>Improvement Needed:</strong> This dataset partially meets FAIR principles. 
+                                Review the detailed assessment below for specific recommendations.
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if fair_data %}
+    <!-- FAIR Principles Detailed Assessment -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-search me-2"></i>
+                        Findable
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Data and metadata are easy to find for both humans and computers.</p>
+                    
+                    {% set findable = fair_data.get('findable', {}) %}
+                    <div class="fair-checklist">
+                        <div class="fair-check-item">
+                            <i class="fas {% if findable.get('persistent_identifier') %}fa-check text-success{% else %}fa-times text-danger{% endif %} me-2"></i>
+                            Persistent identifier assigned
+                        </div>
+                        <div class="fair-check-item">
+                            <i class="fas {% if findable.get('rich_metadata') %}fa-check text-success{% else %}fa-times text-danger{% endif %} me-2"></i>
+                            Rich metadata provided
+                        </div>
+                        <div class="fair-check-item">
+                            <i class="fas {% if findable.get('metadata_includes_identifier') %}fa-check text-success{% else %}fa-times text-danger{% endif %} me-2"></i>
+                            Metadata includes identifier
+                        </div>
+                        <div class="fair-check-item">
+                            <i class="fas {% if findable.get('registered_in_searchable_resource') %}fa-check text-success{% else %}fa-times text-danger{% endif %} me-2"></i>
+                            Registered in searchable resource
+                        </div>
+                    </div>
+                    
+                    {% if findable.get('keywords') %}
+                    <div class="mt-3">
+                        <h6>Keywords:</h6>
+                        <div class="keywords-display">
+                            {% for keyword in findable.get('keywords', [])[:10] %}
+                            <span class="badge bg-primary me-1 mb-1">{{ keyword }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-unlock me-2"></i>
+                        Accessible
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Data is accessible through standardized protocols.</p>
+                    
+                    {% set accessible = fair_data.get('accessible', {}) %}
+                    <div class="fair-checklist">
+                        <div class="fair-check-item">
+                            <i class="fas {% if accessible.get('retrievable_by_identifier') %}fa-check text-success{% else %}fa-times text-danger{% endif %} me-2"></i>
+                            Retrievable by identifier
+                        </div>
+                        <div class="fair-check-item">
+                            <i class="fas {% if accessible.get('protocol_open_free') %}fa-check text-success{% else %}fa-times text-danger{% endif %} me-2"></i>
+                            Open, free protocol
+                        </div>
+                        <div class="fair-check-item">
+                            <i class="fas {% if accessible.get('protocol_allows_authentication') %}fa-check text-success{% else %}fa-times text-danger{% endif %} me-2"></i>
+                            Authentication supported
+                        </div>
+                        <div class="fair-check-item">
+                            <i class="fas {% if accessible.get('metadata_accessible_when_data_unavailable') %}fa-check text-success{% else %}fa-times text-danger{% endif %} me-2"></i>
+                            Metadata persists
+                        </div>
+                    </div>
+                    
+                    {% if accessible.get('access_url') %}
+                    <div class="mt-3">
+                        <h6>Access Information:</h6>
+                        <p class="small">
+                            <strong>Access URL:</strong> <code>{{ accessible.get('access_url') }}</code><br>
+                            <strong>Rights:</strong> {{ accessible.get('access_rights', 'Not specified') }}
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exchange-alt me-2"></i>
+                        Interoperable
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Data can be integrated with other data and used by applications.</p>
+                    
+                    {% set interoperable = fair_data.get('interoperable', {}) %}
+                    <div class="fair-checklist">
+                        <div class="fair-check-item">
+                            <i class="fas {% if interoperable.get('formal_accessible_shared_language') %}fa-check text-success{% else %}fa-times text-danger{% endif %} me-2"></i>
+                            Formal shared language
+                        </div>
+                        <div class="fair-check-item">
+                            <i class="fas {% if interoperable.get('vocabularies_follow_fair') %}fa-check text-success{% else %}fa-times text-danger{% endif %} me-2"></i>
+                            FAIR vocabularies used
+                        </div>
+                        <div class="fair-check-item">
+                            <i class="fas {% if interoperable.get('qualified_references') %}fa-check text-success{% else %}fa-times text-danger{% endif %} me-2"></i>
+                            Qualified references
+                        </div>
+                        <div class="fair-check-item">
+                            <i class="fas {% if interoperable.get('schema_org_compliant') %}fa-check text-success{% else %}fa-times text-danger{% endif %} me-2"></i>
+                            Schema.org compliant
+                        </div>
+                    </div>
+                    
+                    {% if interoperable.get('standard_vocabularies') %}
+                    <div class="mt-3">
+                        <h6>Standard Vocabularies:</h6>
+                        <div class="vocabularies-display">
+                            {% for vocab in interoperable.get('standard_vocabularies', []) %}
+                            <span class="badge bg-warning text-dark me-1 mb-1">{{ vocab }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-recycle me-2"></i>
+                        Reusable
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Data can be reused under clear licensing and provenance.</p>
+                    
+                    {% set reusable = fair_data.get('reusable', {}) %}
+                    <div class="fair-checklist">
+                        <div class="fair-check-item">
+                            <i class="fas {% if reusable.get('rich_attributes') %}fa-check text-success{% else %}fa-times text-danger{% endif %} me-2"></i>
+                            Rich attributes provided
+                        </div>
+                        <div class="fair-check-item">
+                            <i class="fas {% if reusable.get('clear_usage_license') %}fa-check text-success{% else %}fa-times text-danger{% endif %} me-2"></i>
+                            Clear usage license
+                        </div>
+                        <div class="fair-check-item">
+                            <i class="fas {% if reusable.get('detailed_provenance') %}fa-check text-success{% else %}fa-times text-danger{% endif %} me-2"></i>
+                            Detailed provenance
+                        </div>
+                        <div class="fair-check-item">
+                            <i class="fas {% if reusable.get('community_standards') %}fa-check text-success{% else %}fa-times text-danger{% endif %} me-2"></i>
+                            Community standards
+                        </div>
+                    </div>
+                    
+                    {% if reusable.get('license') %}
+                    <div class="mt-3">
+                        <h6>License & Provenance:</h6>
+                        <p class="small">
+                            <strong>License:</strong> {{ reusable.get('license') }}<br>
+                            {% if reusable.get('provenance', {}).get('creator') %}
+                            <strong>Creator:</strong> {{ reusable.get('provenance', {}).get('creator') }}<br>
+                            {% endif %}
+                            {% if reusable.get('provenance', {}).get('source') %}
+                            <strong>Source:</strong> {{ reusable.get('provenance', {}).get('source') }}
+                            {% endif %}
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Metadata Standards -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cogs me-2"></i>
+                        Metadata Standards Implementation
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="metadata-standard-status">
+                                <div class="status-icon {% if dataset.dublin_core %}bg-success{% else %}bg-secondary{% endif %} mb-2">
+                                    <i class="fas fa-tags"></i>
+                                </div>
+                                <h6>Dublin Core</h6>
+                                <p class="small text-muted">
+                                    {% if dataset.dublin_core %}
+                                    ✅ Implemented
+                                    {% else %}
+                                    ❌ Not Available
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="metadata-standard-status">
+                                <div class="status-icon {% if dataset.dcat_metadata %}bg-success{% else %}bg-secondary{% endif %} mb-2">
+                                    <i class="fas fa-sitemap"></i>
+                                </div>
+                                <h6>DCAT</h6>
+                                <p class="small text-muted">
+                                    {% if dataset.dcat_metadata %}
+                                    ✅ Implemented
+                                    {% else %}
+                                    ❌ Not Available
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="metadata-standard-status">
+                                <div class="status-icon {% if dataset.json_ld %}bg-success{% else %}bg-secondary{% endif %} mb-2">
+                                    <i class="fas fa-code"></i>
+                                </div>
+                                <h6>JSON-LD</h6>
+                                <p class="small text-muted">
+                                    {% if dataset.json_ld %}
+                                    ✅ Implemented
+                                    {% else %}
+                                    ❌ Not Available
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info mt-3">
+                        <h6><i class="fas fa-info-circle me-2"></i>About Metadata Standards</h6>
+                        <p class="mb-0">
+                            These metadata standards ensure your dataset is discoverable, accessible, and reusable
+                            across different platforms and applications. Each standard serves specific purposes in
+                            the data ecosystem.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAIR Improvement Guide -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-arrow-up me-2"></i>
+                        How to Improve FAIR Compliance
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <div class="improvement-section">
+                                <h6 class="text-primary">
+                                    <i class="fas fa-search me-2"></i>
+                                    Improve Findability (F)
+                                </h6>
+                                <ul class="improvement-list">
+                                    <li><strong>Add Rich Description:</strong> Provide detailed, comprehensive descriptions (aim for 100+ words)</li>
+                                    <li><strong>Include Keywords:</strong> Add relevant keywords and tags for better discoverability</li>
+                                    <li><strong>Specify Source:</strong> Clearly indicate the data source and origin</li>
+                                    <li><strong>Use Descriptive Title:</strong> Create clear, descriptive titles that explain the dataset content</li>
+                                    <li><strong>Add Categories:</strong> Classify your dataset into appropriate categories</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <div class="improvement-section">
+                                <h6 class="text-info">
+                                    <i class="fas fa-unlock me-2"></i>
+                                    Improve Accessibility (A)
+                                </h6>
+                                <ul class="improvement-list">
+                                    <li><strong>Make Public:</strong> Ensure your dataset is publicly accessible when possible</li>
+                                    <li><strong>Provide Download Options:</strong> Enable direct download capabilities</li>
+                                    <li><strong>Use Standard Formats:</strong> Save data in widely-supported formats (CSV, JSON, XML)</li>
+                                    <li><strong>Add Contact Information:</strong> Include author/contact details for inquiries</li>
+                                    <li><strong>Ensure Persistence:</strong> Metadata remains accessible even if data is removed</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <div class="improvement-section">
+                                <h6 class="text-warning">
+                                    <i class="fas fa-exchange-alt me-2"></i>
+                                    Improve Interoperability (I)
+                                </h6>
+                                <ul class="improvement-list">
+                                    <li><strong>Use Standard Vocabularies:</strong> Implement Dublin Core, DCAT, Schema.org metadata</li>
+                                    <li><strong>Provide Schema Information:</strong> Include data structure and field definitions</li>
+                                    <li><strong>Add Data Types:</strong> Specify data types for all fields</li>
+                                    <li><strong>Include References:</strong> Link to related datasets and external resources</li>
+                                    <li><strong>Use Controlled Vocabularies:</strong> Apply standardized terms and classifications</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <div class="improvement-section">
+                                <h6 class="text-success">
+                                    <i class="fas fa-recycle me-2"></i>
+                                    Improve Reusability (R)
+                                </h6>
+                                <ul class="improvement-list">
+                                    <li><strong>Add License Information:</strong> Specify clear usage rights and licensing terms</li>
+                                    <li><strong>Provide Provenance:</strong> Document data creation process and history</li>
+                                    <li><strong>Include Quality Metrics:</strong> Add data quality assessments and validation results</li>
+                                    <li><strong>Document Methodology:</strong> Explain how the data was collected and processed</li>
+                                    <li><strong>Add Use Cases:</strong> Suggest potential applications and research uses</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-success mt-4">
+                        <h6><i class="fas fa-lightbulb me-2"></i>Quick Wins for FAIR Compliance</h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <strong>Immediate Actions:</strong>
+                                <ul class="mb-0">
+                                    <li>Add detailed description</li>
+                                    <li>Specify license</li>
+                                    <li>Include keywords</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-4">
+                                <strong>Medium-term Goals:</strong>
+                                <ul class="mb-0">
+                                    <li>Implement Schema.org markup</li>
+                                    <li>Add quality assessments</li>
+                                    <li>Document provenance</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-4">
+                                <strong>Advanced Features:</strong>
+                                <ul class="mb-0">
+                                    <li>Persistent identifiers</li>
+                                    <li>Linked data integration</li>
+                                    <li>Community standards</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    .compliance-status-circle {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #fff;
+        margin: 0 auto;
+    }
+    
+    .fair-checklist {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .fair-check-item {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(0,0,0,0.1);
+    }
+    
+    .fair-check-item:last-child {
+        border-bottom: none;
+    }
+    
+    .keywords-display, .vocabularies-display {
+        max-height: 100px;
+        overflow-y: auto;
+    }
+    
+    .status-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #fff;
+        margin: 0 auto;
+    }
+    
+    .metadata-standard-status {
+        padding: 1rem;
+        border: 1px solid rgba(0,0,0,0.1);
+        border-radius: 8px;
+        height: 100%;
+    }
+
+    .improvement-section {
+        padding: 1rem;
+        border-radius: 8px;
+        background: rgba(0,0,0,0.02);
+        height: 100%;
+    }
+
+    .improvement-list {
+        list-style: none;
+        padding-left: 0;
+    }
+
+    .improvement-list li {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(0,0,0,0.1);
+    }
+
+    .improvement-list li:last-child {
+        border-bottom: none;
+    }
+
+    .improvement-list li:before {
+        content: "✓";
+        color: #28a745;
+        font-weight: bold;
+        margin-right: 0.5rem;
+    }
+</style>
+{% endblock %}

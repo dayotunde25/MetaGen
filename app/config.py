@@ -11,7 +11,7 @@ class Config:
     }
 
     UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
-    MAX_CONTENT_LENGTH = 50 * 1024 * 1024  # 50MB max upload size
+    MAX_CONTENT_LENGTH = 5 * 1024 * 1024 * 1024  # 5GB max upload size
 
     # Session configuration
     PERMANENT_SESSION_LIFETIME = timedelta(days=7)

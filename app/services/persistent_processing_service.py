@@ -421,14 +421,20 @@ class PersistentProcessingService:
     
     # Processing step methods (same as background_processing_service.py)
     def _step_process_file(self, dataset, dataset_service, results):
-        """Step 1: Process dataset file."""
+        """Step 1: Process dataset file with FULL DATASET processing enabled."""
         if dataset.file_path:
             file_info = {
                 'path': dataset.file_path,
                 'format': dataset.format,
                 'size': dataset.size
             }
-            return dataset_service.process_dataset(file_info, dataset.format)
+            print(f"🚀 FORCING FULL DATASET PROCESSING for dataset {dataset.id}")
+            # FORCE full dataset processing
+            result = dataset_service.process_dataset(file_info, dataset.format, process_full_dataset=True)
+            if result:
+                print(f"📊 Full dataset processing result: {result.get('processed_records', 0)} records processed from {result.get('record_count', 0)} total")
+                print(f"📊 Processing mode: {result.get('processing_mode', 'unknown')}")
+            return result
         return {}
     
     def _step_clean_data(self, dataset, dataset_service, results):

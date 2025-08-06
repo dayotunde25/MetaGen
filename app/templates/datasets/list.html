@@ -51,7 +51,7 @@
                     </select>
                 </div>
                 <div class="col-md-1 d-flex align-items-end">
-                    <button type="submit" class="btn btn-secondary w-100">Filter</button>
+                    <button type="submit" class="btn btn-secondary w-100" id="filterButton">Filter</button>
                 </div>
             </form>
         </div>
@@ -142,6 +142,9 @@
                                         <i class="fas fa-code"></i>
                                     </a>
                                     {% endif %}
+                                    <a href="{{ url_for('datasets.download_dataset', dataset_id=dataset.id) }}" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Download as ZIP">
+                                        <i class="fas fa-download"></i>
+                                    </a>
                                     <form method="POST" action="{{ url_for('datasets.delete', dataset_id=dataset.id) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this dataset?')">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                         <button type="submit" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Delete Dataset">
@@ -223,4 +226,125 @@
     </nav>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Filter form loading
+    const filterForm = document.querySelector('form[action*="list"]');
+    const filterButton = document.getElementById('filterButton');
+
+    if (filterForm && filterButton) {
+        filterForm.addEventListener('submit', function(e) {
+            const formData = new FormData(filterForm);
+            const hasFilters = Array.from(formData.values()).some(value => value.trim() !== '');
+
+            if (hasFilters) {
+                const loaderId = window.smartLoader.show('general', {
+                    title: '🔍 Filtering Datasets',
+                    subtitle: 'Applying filters to dataset list...',
+                    tips: 'This should only take a moment'
+                });
+
+                filterButton.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Filtering...';
+                filterButton.disabled = true;
+
+                window.currentFilterLoader = loaderId;
+            }
+        });
+    }
+
+    // Processing button loading
+    const processingForms = document.querySelectorAll('form[action*="start_processing"]');
+    processingForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const datasetRow = this.closest('tr');
+            const datasetTitle = datasetRow ? datasetRow.querySelector('a').textContent.trim() : 'dataset';
+
+            const loaderId = window.smartLoader.showProcessingLoader(datasetTitle);
+
+            const button = this.querySelector('button[type="submit"]');
+            if (button) {
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                button.disabled = true;
+            }
+
+            window.currentProcessingLoader = loaderId;
+        });
+    });
+
+    // Pagination loading
+    const paginationLinks = document.querySelectorAll('.pagination .page-link[href]');
+    paginationLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            const href = this.getAttribute('href');
+            if (href && href !== '#') {
+                const loaderId = window.smartLoader.show('general', {
+                    title: '📄 Loading Page',
+                    subtitle: 'Loading dataset list...',
+                    tips: 'Fetching your datasets'
+                });
+
+                window.currentPageLoader = loaderId;
+            }
+        });
+    });
+
+    // Dataset view links loading
+    const datasetLinks = document.querySelectorAll('a[href*="datasets/view"]');
+    datasetLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            const datasetTitle = this.textContent.trim();
+
+            const loaderId = window.smartLoader.show('general', {
+                title: '📊 Loading Dataset',
+                subtitle: `Opening "${datasetTitle}"...`,
+                tips: 'Loading dataset details and metadata'
+            });
+
+            window.currentDatasetLoader = loaderId;
+        });
+    });
+
+    // Metadata view links loading
+    const metadataLinks = document.querySelectorAll('a[href*="metadata"]');
+    metadataLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            const loaderId = window.smartLoader.show('processing', {
+                title: '📋 Loading Metadata',
+                subtitle: 'Fetching dataset metadata and quality information...',
+                tips: 'This includes FAIR compliance and quality scores'
+            });
+
+            window.currentMetadataLoader = loaderId;
+        });
+    });
+
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', () => {
+    if (window.currentFilterLoader) {
+        window.smartLoader.hide(window.currentFilterLoader);
+    }
+    if (window.currentProcessingLoader) {
+        window.smartLoader.hide(window.currentProcessingLoader);
+    }
+    if (window.currentPageLoader) {
+        window.smartLoader.hide(window.currentPageLoader);
+    }
+    if (window.currentDatasetLoader) {
+        window.smartLoader.hide(window.currentDatasetLoader);
+    }
+    if (window.currentMetadataLoader) {
+        window.smartLoader.hide(window.currentMetadataLoader);
+    }
+});
+</script>
 {% endblock %}

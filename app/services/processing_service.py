@@ -30,6 +30,16 @@ class ProcessingService:
 
     def start_processing(self, dataset_id: str, upload_folder: str, progress_callback: Optional[Callable] = None) -> bool:
         """Start automatic processing for a dataset with enhanced persistence"""
+        # Check if already processing to prevent duplication
+        if dataset_id in self.active_processes:
+            print(f"⚠️ Dataset {dataset_id} is already being processed")
+            return False
+
+        # Check if dataset is already being processed by persistent service
+        if hasattr(persistent_processing_service, 'active_processes') and dataset_id in persistent_processing_service.active_processes:
+            print(f"⚠️ Dataset {dataset_id} is already being processed by persistent service")
+            return False
+
         try:
             # Try persistent processing first (survives application restarts)
             success = persistent_processing_service.start_persistent_processing(
@@ -44,7 +54,22 @@ class ProcessingService:
                 return self._start_standard_processing(dataset_id, upload_folder, progress_callback)
 
         except Exception as e:
-            print(f"Error with persistent processing, using fallback: {e}")
+            print(f"Error with persistent processing, trying background service: {e}")
+            # Try background processing service as secondary fallback
+            try:
+                from app.services.background_processing_service import background_processing_service
+                result = background_processing_service.start_background_processing(
+                    dataset_id, upload_folder, priority=1
+                )
+                if result['success']:
+                    print(f"✅ Started background processing: {result['method']}")
+                    return True
+                else:
+                    print(f"⚠️ Background processing failed: {result.get('error', 'Unknown error')}")
+            except Exception as bg_error:
+                print(f"Background processing service unavailable: {bg_error}")
+
+            # Final fallback to standard processing
             return self._start_standard_processing(dataset_id, upload_folder, progress_callback)
 
     def _start_standard_processing(self, dataset_id: str, upload_folder: str, progress_callback: Optional[Callable] = None) -> bool:
@@ -80,11 +105,11 @@ class ProcessingService:
             if progress_callback:
                 self.progress_callbacks[dataset_id] = progress_callback
 
-            # Start processing in background thread
+            # Start processing in enhanced background thread (non-daemon for persistence)
             thread = threading.Thread(
                 target=self._process_dataset_background,
                 args=(dataset_id, upload_folder),
-                daemon=True
+                daemon=False  # Non-daemon thread survives longer
             )
             thread.start()
 
@@ -222,7 +247,7 @@ class ProcessingService:
                 'format': dataset.format,
                 'size': dataset.size
             }
-            return dataset_service.process_dataset(file_info, dataset.format)
+            return dataset_service.process_dataset(file_info, dataset.format, process_full_dataset=True)
         return {}
 
     def _perform_nlp_analysis(self, dataset, processed_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -530,9 +555,10 @@ class ProcessingService:
                 dataset, processed_data, quality_results, ai_compliance
             )
 
-            # Save visualizations to dataset
+            # Save visualizations to dataset as JSON string
             if visualizations and 'charts' in visualizations:
-                dataset.update(visualizations=visualizations)
+                import json
+                dataset.update(visualizations=json.dumps(visualizations))
                 print(f"✅ Generated {len(visualizations['charts'])} visualizations for dataset {dataset.id}")
             else:
                 print(f"⚠️ No visualizations generated for dataset {dataset.id}")
@@ -542,7 +568,8 @@ class ProcessingService:
             # Fallback to basic visualization
             try:
                 fallback_viz = data_visualization_service._generate_fallback_visualizations(dataset, processed_data)
-                dataset.update(visualizations=fallback_viz)
+                import json
+                dataset.update(visualizations=json.dumps(fallback_viz))
                 print(f"✅ Generated fallback visualizations for dataset {dataset.id}")
             except Exception as fallback_error:
                 print(f"❌ Fallback visualization also failed: {fallback_error}")

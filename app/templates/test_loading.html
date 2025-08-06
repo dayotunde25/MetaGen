@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+
+{% block title %}Loading Animation Test - Dataset Metadata Manager{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Smart Loading Animation Test</h1>
+    
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>
+        <strong>Test the smart loading system:</strong> These buttons demonstrate different loading animations that appear only when processes take longer than 300ms.
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-search me-2"></i>Search Loading</h5>
+                </div>
+                <div class="card-body">
+                    <p>Simulates semantic search with NLP processing.</p>
+                    <button class="btn btn-success" onclick="testSearchLoading()">
+                        <i class="fas fa-search me-1"></i> Test Search Loading
+                    </button>
+                    <button class="btn btn-outline-success ms-2" onclick="testFastSearch()">
+                        <i class="fas fa-bolt me-1"></i> Test Fast Search (No Loading)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-upload me-2"></i>Upload Loading</h5>
+                </div>
+                <div class="card-body">
+                    <p>Simulates dataset upload and validation.</p>
+                    <button class="btn btn-purple" onclick="testUploadLoading()" style="background-color: #9c27b0; color: white;">
+                        <i class="fas fa-upload me-1"></i> Test Upload Loading
+                    </button>
+                    <button class="btn btn-outline-secondary ms-2" onclick="testFastUpload()">
+                        <i class="fas fa-bolt me-1"></i> Test Fast Upload
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-cogs me-2"></i>Processing Loading</h5>
+                </div>
+                <div class="card-body">
+                    <p>Simulates dataset processing with NLP analysis.</p>
+                    <button class="btn btn-warning" onclick="testProcessingLoading()">
+                        <i class="fas fa-cogs me-1"></i> Test Processing Loading
+                    </button>
+                    <button class="btn btn-outline-warning ms-2" onclick="testFastProcessing()">
+                        <i class="fas fa-bolt me-1"></i> Test Fast Processing
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-spinner me-2"></i>General Loading</h5>
+                </div>
+                <div class="card-body">
+                    <p>General purpose loading animation.</p>
+                    <button class="btn btn-primary" onclick="testGeneralLoading()">
+                        <i class="fas fa-spinner me-1"></i> Test General Loading
+                    </button>
+                    <button class="btn btn-outline-primary ms-2" onclick="testFastGeneral()">
+                        <i class="fas fa-bolt me-1"></i> Test Fast General
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-vial me-2"></i>Inline Loading Test</h5>
+        </div>
+        <div class="card-body">
+            <p>Test inline loading animations for specific content areas.</p>
+            <div class="row">
+                <div class="col-md-4">
+                    <button class="btn btn-info" onclick="testInlineLoading('search-results')">
+                        Show Search Results Loading
+                    </button>
+                    <div id="search-results" class="mt-3 border rounded p-3" style="min-height: 100px;">
+                        <p>Search results will appear here...</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <button class="btn btn-info" onclick="testInlineLoading('processing-status')">
+                        Show Processing Status Loading
+                    </button>
+                    <div id="processing-status" class="mt-3 border rounded p-3" style="min-height: 100px;">
+                        <p>Processing status will appear here...</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <button class="btn btn-info" onclick="testInlineLoading('upload-progress')">
+                        Show Upload Progress Loading
+                    </button>
+                    <div id="upload-progress" class="mt-3 border rounded p-3" style="min-height: 100px;">
+                        <p>Upload progress will appear here...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>How It Works</h5>
+        </div>
+        <div class="card-body">
+            <h6>Smart Loading Features:</h6>
+            <ul>
+                <li><strong>Threshold-based:</strong> Loading animations only appear if the process takes longer than 300ms</li>
+                <li><strong>Context-aware:</strong> Different animations for search, upload, processing, and general operations</li>
+                <li><strong>Auto-detection:</strong> Automatically detects forms and AJAX requests</li>
+                <li><strong>Graceful fallback:</strong> Works even if JavaScript fails</li>
+                <li><strong>Performance optimized:</strong> No flash for fast operations</li>
+            </ul>
+            
+            <h6 class="mt-3">Real-world Usage:</h6>
+            <ul>
+                <li><strong>Search:</strong> Shows when semantic search with NLP takes time</li>
+                <li><strong>Upload:</strong> Displays during file upload and validation</li>
+                <li><strong>Processing:</strong> Appears during dataset processing and analysis</li>
+                <li><strong>Navigation:</strong> Shows for slow page loads and AJAX requests</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Test functions for different loading types
+function testSearchLoading() {
+    const loaderId = window.smartLoader.showSearchLoader('machine learning datasets');
+    setTimeout(() => {
+        window.smartLoader.hide(loaderId);
+        showToast('Search completed!', 'success');
+    }, 3000);
+}
+
+function testFastSearch() {
+    const loaderId = window.smartLoader.showSearchLoader('quick search');
+    setTimeout(() => {
+        window.smartLoader.hide(loaderId);
+        showToast('Fast search completed (no loading shown)!', 'info');
+    }, 200); // Fast operation - no loading will show
+}
+
+function testUploadLoading() {
+    const loaderId = window.smartLoader.showUploadLoader('large_dataset.csv');
+    setTimeout(() => {
+        window.smartLoader.hide(loaderId);
+        showToast('Upload completed!', 'success');
+    }, 4000);
+}
+
+function testFastUpload() {
+    const loaderId = window.smartLoader.showUploadLoader('small_file.txt');
+    setTimeout(() => {
+        window.smartLoader.hide(loaderId);
+        showToast('Fast upload completed (no loading shown)!', 'info');
+    }, 100);
+}
+
+function testProcessingLoading() {
+    const loaderId = window.smartLoader.showProcessingLoader('COVID-19 Patient Data');
+    setTimeout(() => {
+        window.smartLoader.hide(loaderId);
+        showToast('Processing completed!', 'success');
+    }, 5000);
+}
+
+function testFastProcessing() {
+    const loaderId = window.smartLoader.showProcessingLoader('Simple Dataset');
+    setTimeout(() => {
+        window.smartLoader.hide(loaderId);
+        showToast('Fast processing completed (no loading shown)!', 'info');
+    }, 150);
+}
+
+function testGeneralLoading() {
+    const loaderId = window.smartLoader.show('general');
+    setTimeout(() => {
+        window.smartLoader.hide(loaderId);
+        showToast('General operation completed!', 'success');
+    }, 2000);
+}
+
+function testFastGeneral() {
+    const loaderId = window.smartLoader.show('general');
+    setTimeout(() => {
+        window.smartLoader.hide(loaderId);
+        showToast('Fast operation completed (no loading shown)!', 'info');
+    }, 100);
+}
+
+function testInlineLoading(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    let type = 'general';
+    if (containerId.includes('search')) type = 'search';
+    else if (containerId.includes('processing')) type = 'processing';
+    else if (containerId.includes('upload')) type = 'upload';
+    
+    window.smartLoader.showInline(container, type);
+    
+    setTimeout(() => {
+        container.innerHTML = `
+            <div class="alert alert-success mb-0">
+                <i class="fas fa-check-circle me-2"></i>
+                <strong>Success!</strong> ${type.charAt(0).toUpperCase() + type.slice(1)} operation completed.
+            </div>
+        `;
+    }, 3000);
+}
+
+function showToast(message, type) {
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    toast.style.cssText = 'top: 20px; right: 20px; z-index: 10000; min-width: 300px;';
+    toast.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.remove();
+        }
+    }, 5000);
+}
+</script>
+{% endblock %}

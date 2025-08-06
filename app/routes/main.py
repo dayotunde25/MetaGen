@@ -62,12 +62,26 @@ def dashboard():
         status__in=['pending', 'processing']
     ))
 
+    # Get overall processing status for admin view
+    try:
+        from app.services.dataset_monitor_service import get_dataset_monitor_service
+        monitor_service = get_dataset_monitor_service()
+        processing_status = monitor_service.get_processing_status()
+    except Exception as e:
+        processing_status = {'error': str(e)}
+
+    # Create fix queue form
+    from app.forms import FixQueueForm
+    fix_queue_form = FixQueueForm()
+
     return render_template('main/dashboard.html',
                           title='Dashboard',
                           stats=stats,
                           recent_datasets=recent_datasets,
                           featured_datasets=featured_datasets,
-                          processing_queue=processing_queue)
+                          processing_queue=processing_queue,
+                          processing_status=processing_status,
+                          fix_queue_form=fix_queue_form)
 
 @main_bp.route('/statistics')
 @login_required
@@ -180,8 +194,8 @@ def search():
                 limit=1000  # Get more results for pagination
             )
 
-            # Extract datasets from search results (already scored and sorted)
-            all_results = [result['dataset'] for result in search_results]
+            # Keep the full search results with scores and quality information
+            all_results = search_results
 
         except Exception as e:
             # Fall back to basic text search if semantic search fails
@@ -193,10 +207,22 @@ def search():
                 Q(tags__icontains=search_term) |
                 Q(source__icontains=search_term)
             )
-            all_results = list(datasets_query.filter(text_query).order_by('-created_at'))
+            # Convert to result format for consistency with quality scores
+            from app.services.semantic_search_service import EnhancedSemanticSearchService
+            datasets = list(datasets_query.filter(text_query).order_by('-created_at'))
+            all_results = EnhancedSemanticSearchService.add_quality_scores_to_datasets(datasets)
+            # Update relevance explanation for text search
+            for result in all_results:
+                result['score'] = 0.5
+                result['relevance_explanation'] = 'Basic text match'
     else:
-        # No search query - show all filtered datasets
-        all_results = sorted(filtered_datasets, key=lambda d: d.created_at, reverse=True)
+        # No search query - show all filtered datasets with quality scores
+        from app.services.semantic_search_service import EnhancedSemanticSearchService
+        datasets = sorted(filtered_datasets, key=lambda d: d.created_at, reverse=True)
+        all_results = EnhancedSemanticSearchService.add_quality_scores_to_datasets(datasets)
+        # Update relevance explanation for listing
+        for result in all_results:
+            result['relevance_explanation'] = 'Dataset listing'
 
     # Get total count for pagination
     total_results = len(all_results)
@@ -255,6 +281,11 @@ def reindex_search():
 def documentation():
     """Documentation page"""
     return render_template('main/documentation.html', title='Documentation')
+
+@main_bp.route('/test-loading')
+def test_loading():
+    """Test page for smart loading animations"""
+    return render_template('test_loading.html', title='Loading Animation Test')
 
 @main_bp.route('/favicon.ico')
 def favicon():

@@ -19,7 +19,7 @@
         </div>
     </div>
 
-    {% if visualizations and visualizations.charts %}
+    {% if visualizations %}
     <!-- Visualization Summary -->
     <div class="row mb-4">
         <div class="col">
@@ -34,32 +34,35 @@
                     <div class="row">
                         <div class="col-md-3">
                             <div class="text-center">
-                                <h3 class="text-primary">{{ visualizations.summary.total_charts }}</h3>
+                                <h3 class="text-primary">{{ (visualizations.keys() | list | length) - 2 }}</h3>
                                 <p class="mb-0">Total Charts</p>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="text-center">
-                                <h3 class="text-success">{{ visualizations.summary.interactive_charts }}</h3>
+                                <h3 class="text-success">{{ (visualizations.keys() | list | length) - 2 }}</h3>
                                 <p class="mb-0">Interactive Charts</p>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="text-center">
-                                <h3 class="text-info">{{ visualizations.summary.static_images }}</h3>
-                                <p class="mb-0">Static Images</p>
+                                <h3 class="text-info">{{ visualizations.visualization_version or '2.0' }}</h3>
+                                <p class="mb-0">Version</p>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="text-center">
-                                <h3 class="text-warning">{{ visualizations.summary.chart_types|length }}</h3>
+                                <h3 class="text-warning">5</h3>
                                 <p class="mb-0">Chart Types</p>
                             </div>
                         </div>
                     </div>
                     <div class="mt-3">
                         <small class="text-muted">
-                            Generated on {{ visualizations.generated_at[:10] }} at {{ visualizations.generated_at[11:19] }}
+                            Generated on {{ visualizations.generated_at[:10] if visualizations.generated_at else 'Unknown' }}
+                            {% if visualizations.generated_at and visualizations.generated_at|length > 10 %}
+                            at {{ visualizations.generated_at[11:19] }}
+                            {% endif %}
                         </small>
                     </div>
                 </div>
@@ -69,39 +72,66 @@
 
     <!-- Charts Grid -->
     <div class="row">
-        {% for chart_name, chart_data in visualizations.charts.items() %}
+        {% for chart_name, chart_data in visualizations.items() %}
+        {% if chart_name not in ['generated_at', 'visualization_version'] %}
         <div class="col-lg-6 mb-4">
             <div class="card shadow-sm h-100">
                 <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0">{{ chart_data.title or chart_name|title }}</h6>
-                    <span class="badge bg-secondary">{{ chart_data.type|title }}</span>
+                    <h6 class="mb-0">{{ chart_data.chart_config.title or chart_name|replace('_', ' ')|title }}</h6>
+                    <span class="badge bg-secondary">{{ chart_data.chart_config.type|title if chart_data.chart_config else chart_data.type|title }}</span>
                 </div>
                 <div class="card-body">
-                    {% if chart_data.type == 'metric' %}
-                        <!-- Metric Display -->
+                    {% set chart_type = chart_data.chart_config.type if chart_data.chart_config else chart_data.type %}
+                    {% if chart_type == 'metric' or chart_type == 'info_cards' %}
+                        <!-- Metric/Info Cards Display -->
+                        {% if chart_name == 'data_overview' %}
+                        <div class="row">
+                            <div class="col-6 text-center">
+                                <h3 class="text-primary">{{ chart_data.data.record_count }}</h3>
+                                <p class="mb-0">Records</p>
+                            </div>
+                            <div class="col-6 text-center">
+                                <h3 class="text-success">{{ chart_data.data.field_count }}</h3>
+                                <p class="mb-0">Fields</p>
+                            </div>
+                        </div>
+                        {% elif chart_name == 'metadata_completeness' %}
                         <div class="text-center py-4">
-                            <h2 class="display-4 text-primary mb-2">{{ chart_data.data.value }}</h2>
+                            <h2 class="display-4 text-primary mb-2">{{ chart_data.data.completeness_percentage }}%</h2>
+                            <p class="text-muted">Metadata Completeness</p>
+                            <div class="progress mt-3">
+                                <div class="progress-bar" role="progressbar" style="width: {{ chart_data.data.completeness_percentage }}%"></div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <h2 class="display-4 text-primary mb-2">{{ chart_data.data.value or 'N/A' }}</h2>
                             <p class="text-muted">{{ chart_data.data.label or 'Value' }}</p>
                         </div>
-                    
-                    {% elif chart_data.type == 'gauge' %}
+                        {% endif %}
+
+                    {% elif chart_type == 'gauge' %}
                         <!-- Gauge Chart -->
                         <div class="text-center py-4">
                             <div class="gauge-container position-relative d-inline-block">
+                                {% set progress_ratio = chart_data.data.value / chart_data.data.max %}
+                                {% set progress_angle = progress_ratio * 180 %}
+                                {% set end_x = 20 + (160 * progress_ratio) %}
+                                {% set end_y = 100 - (80 * (progress_ratio * 2 - 1) | abs) %}
                                 <svg width="200" height="120" viewBox="0 0 200 120">
                                     <!-- Background arc -->
-                                    <path d="M 20 100 A 80 80 0 0 1 180 100" 
+                                    <path d="M 20 100 A 80 80 0 0 1 180 100"
                                           stroke="#e9ecef" stroke-width="20" fill="none"/>
                                     <!-- Progress arc -->
-                                    <path d="M 20 100 A 80 80 0 0 1 {{ 20 + (160 * chart_data.data.value / chart_data.data.max) }} {{ 100 - (80 * (1 - ((chart_data.data.value / chart_data.data.max - 0.5) * 2) ** 2) ** 0.5) if chart_data.data.value / chart_data.data.max <= 0.5 else 100 - (80 * (1 - ((1 - chart_data.data.value / chart_data.data.max) * 2) ** 2) ** 0.5)) }}" 
-                                          stroke="{{ chart_data.data.color }}" stroke-width="20" fill="none"/>
+                                    <path d="M 20 100 A 80 80 0 {{ '1' if progress_ratio > 0.5 else '0' }} 1 {{ end_x }} {{ end_y }}"
+                                          stroke="{{ chart_data.data.color or '#007bff' }}" stroke-width="20" fill="none"/>
                                     <!-- Value text -->
                                     <text x="100" y="90" text-anchor="middle" class="h4">{{ chart_data.data.label }}</text>
                                 </svg>
                             </div>
                         </div>
                     
-                    {% elif chart_data.type == 'pie' %}
+                    {% elif chart_type == 'pie' %}
                         <!-- Pie Chart -->
                         <div class="chart-container">
                             <canvas id="chart-{{ loop.index }}" width="400" height="300"></canvas>
@@ -109,13 +139,24 @@
                         <script>
                             document.addEventListener('DOMContentLoaded', function() {
                                 const ctx = document.getElementById('chart-{{ loop.index }}').getContext('2d');
+                                {% if chart_name == 'field_analysis' %}
+                                const data = {{ chart_data.data.type_distribution|tojson }};
+                                const labels = Object.keys(data);
+                                const values = Object.values(data);
+                                const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'];
+                                {% else %}
+                                const labels = {{ chart_data.data|map(attribute='name')|list|tojson if chart_data.data is iterable else [] }};
+                                const values = {{ chart_data.data|map(attribute='value')|list|tojson if chart_data.data is iterable else [] }};
+                                const colors = {{ chart_data.data|map(attribute='color')|list|tojson if chart_data.data is iterable else ['#FF6384', '#36A2EB', '#FFCE56'] }};
+                                {% endif %}
+
                                 new Chart(ctx, {
                                     type: 'pie',
                                     data: {
-                                        labels: {{ chart_data.data|map(attribute='name')|list|tojson }},
+                                        labels: labels,
                                         datasets: [{
-                                            data: {{ chart_data.data|map(attribute='value')|list|tojson }},
-                                            backgroundColor: {{ chart_data.data|map(attribute='color')|list|tojson }}
+                                            data: values,
+                                            backgroundColor: colors
                                         }]
                                     },
                                     options: {
@@ -161,7 +202,7 @@
                             });
                         </script>
                     
-                    {% elif chart_data.type == 'radar' %}
+                    {% elif chart_type == 'radar' %}
                         <!-- Radar Chart -->
                         <div class="chart-container">
                             <canvas id="chart-{{ loop.index }}" width="400" height="300"></canvas>
@@ -169,13 +210,22 @@
                         <script>
                             document.addEventListener('DOMContentLoaded', function() {
                                 const ctx = document.getElementById('chart-{{ loop.index }}').getContext('2d');
+                                {% if chart_name == 'quality_metrics' %}
+                                const data = {{ chart_data.data|tojson }};
+                                const labels = ['Overall Score', 'Completeness', 'Consistency', 'Accuracy'];
+                                const values = [data.overall_score || 0, data.completeness || 0, data.consistency || 0, data.accuracy || 0];
+                                {% else %}
+                                const labels = {{ chart_data.data|map(attribute='principle')|list|tojson if chart_data.data is iterable and chart_data.data[0].principle is defined else chart_data.data|map(attribute='metric')|list|tojson if chart_data.data is iterable else [] }};
+                                const values = {{ chart_data.data|map(attribute='score')|list|tojson if chart_data.data is iterable else [] }};
+                                {% endif %}
+
                                 new Chart(ctx, {
                                     type: 'radar',
                                     data: {
-                                        labels: {{ chart_data.data|map(attribute='principle')|list|tojson if chart_data.data[0].principle is defined else chart_data.data|map(attribute='metric')|list|tojson }},
+                                        labels: labels,
                                         datasets: [{
                                             label: 'Score',
-                                            data: {{ chart_data.data|map(attribute='score')|list|tojson }},
+                                            data: values,
                                             backgroundColor: 'rgba(52, 152, 219, 0.2)',
                                             borderColor: 'rgba(52, 152, 219, 1)',
                                             pointBackgroundColor: 'rgba(52, 152, 219, 1)'
@@ -186,7 +236,7 @@
                                         scales: {
                                             r: {
                                                 beginAtZero: true,
-                                                max: {{ chart_data.max or 100 }}
+                                                max: 100
                                             }
                                         }
                                     }
@@ -226,16 +276,244 @@
                                  style="max-height: 400px;">
                         </div>
                     
+                    {% elif chart_type == 'wordcloud' %}
+                        <!-- Word Cloud -->
+                        {% if chart_name == 'keyword_cloud' and chart_data.data.keywords %}
+                        <div class="text-center py-3">
+                            {% for keyword in chart_data.data.keywords[:20] %}
+                            <span class="badge bg-primary me-1 mb-1" style="font-size: {{ 0.8 + (keyword.weight / 20 * 0.5) }}rem;">
+                                {{ keyword.text }}
+                            </span>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <p class="text-muted">No keywords available</p>
+                        </div>
+                        {% endif %}
+
+                    {% elif chart_type == 'line' %}
+                        <!-- Line Chart -->
+                        <div class="chart-container">
+                            <canvas id="chart-{{ loop.index }}" width="400" height="300"></canvas>
+                        </div>
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                const ctx = document.getElementById('chart-{{ loop.index }}').getContext('2d');
+                                const data = {{ chart_data.data|tojson }};
+
+                                new Chart(ctx, {
+                                    type: 'line',
+                                    data: {
+                                        labels: data.labels || data.x || [],
+                                        datasets: [{
+                                            label: '{{ chart_data.chart_config.title or chart_name|title }}',
+                                            data: data.values || data.y || [],
+                                            borderColor: '#3498db',
+                                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                                            tension: 0.4,
+                                            fill: true
+                                        }]
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        scales: {
+                                            y: {
+                                                beginAtZero: true
+                                            }
+                                        }
+                                    }
+                                });
+                            });
+                        </script>
+
+                    {% elif chart_type == 'histogram' %}
+                        <!-- Histogram -->
+                        <div class="chart-container">
+                            <canvas id="chart-{{ loop.index }}" width="400" height="300"></canvas>
+                        </div>
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                const ctx = document.getElementById('chart-{{ loop.index }}').getContext('2d');
+                                const data = {{ chart_data.data|tojson }};
+
+                                new Chart(ctx, {
+                                    type: 'bar',
+                                    data: {
+                                        labels: data.bins || [],
+                                        datasets: [{
+                                            label: 'Frequency',
+                                            data: data.frequencies || data.values || [],
+                                            backgroundColor: '#3498db',
+                                            borderColor: '#2980b9',
+                                            borderWidth: 1
+                                        }]
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        scales: {
+                                            y: {
+                                                beginAtZero: true,
+                                                title: {
+                                                    display: true,
+                                                    text: 'Frequency'
+                                                }
+                                            },
+                                            x: {
+                                                title: {
+                                                    display: true,
+                                                    text: data.xlabel || 'Value'
+                                                }
+                                            }
+                                        }
+                                    }
+                                });
+                            });
+                        </script>
+
+                    {% elif chart_type == 'scatter' %}
+                        <!-- Scatter Plot -->
+                        <div class="chart-container">
+                            <canvas id="chart-{{ loop.index }}" width="400" height="300"></canvas>
+                        </div>
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                const ctx = document.getElementById('chart-{{ loop.index }}').getContext('2d');
+                                const data = {{ chart_data.data|tojson }};
+
+                                new Chart(ctx, {
+                                    type: 'scatter',
+                                    data: {
+                                        datasets: [{
+                                            label: '{{ chart_data.chart_config.title or chart_name|title }}',
+                                            data: data.points || data.data || [],
+                                            backgroundColor: '#e74c3c',
+                                            borderColor: '#c0392b'
+                                        }]
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        scales: {
+                                            x: {
+                                                type: 'linear',
+                                                position: 'bottom',
+                                                title: {
+                                                    display: true,
+                                                    text: data.xlabel || 'X'
+                                                }
+                                            },
+                                            y: {
+                                                title: {
+                                                    display: true,
+                                                    text: data.ylabel || 'Y'
+                                                }
+                                            }
+                                        }
+                                    }
+                                });
+                            });
+                        </script>
+
+                    {% elif chart_type == 'boxplot' %}
+                        <!-- Box Plot -->
+                        <div class="chart-container">
+                            <canvas id="chart-{{ loop.index }}" width="400" height="300"></canvas>
+                        </div>
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                const ctx = document.getElementById('chart-{{ loop.index }}').getContext('2d');
+                                const data = {{ chart_data.data|tojson }};
+
+                                // Box plot using Chart.js with custom drawing
+                                new Chart(ctx, {
+                                    type: 'bar',
+                                    data: {
+                                        labels: data.labels || ['Q1', 'Median', 'Q3'],
+                                        datasets: [{
+                                            label: 'Box Plot',
+                                            data: [data.q1 || 0, data.median || 0, data.q3 || 0],
+                                            backgroundColor: ['#3498db', '#e74c3c', '#2ecc71'],
+                                            borderColor: ['#2980b9', '#c0392b', '#27ae60'],
+                                            borderWidth: 1
+                                        }]
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        scales: {
+                                            y: {
+                                                beginAtZero: true,
+                                                title: {
+                                                    display: true,
+                                                    text: 'Value'
+                                                }
+                                            }
+                                        },
+                                        plugins: {
+                                            legend: {
+                                                display: true
+                                            },
+                                            tooltip: {
+                                                callbacks: {
+                                                    afterBody: function() {
+                                                        return [
+                                                            'Min: ' + (data.min || 'N/A'),
+                                                            'Max: ' + (data.max || 'N/A'),
+                                                            'Mean: ' + (data.mean || 'N/A')
+                                                        ];
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                });
+                            });
+                        </script>
+
+                    {% elif chart_type == 'heatmap' %}
+                        <!-- Heat Map -->
+                        <div class="chart-container">
+                            <div id="heatmap-{{ loop.index }}" style="width: 100%; height: 300px;"></div>
+                        </div>
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                const data = {{ chart_data.data|tojson }};
+                                const container = document.getElementById('heatmap-{{ loop.index }}');
+
+                                // Simple heatmap using HTML/CSS
+                                if (data.matrix && data.labels) {
+                                    let html = '<div class="heatmap-grid" style="display: grid; gap: 2px; grid-template-columns: repeat(' + data.matrix[0].length + ', 1fr);">';
+
+                                    data.matrix.forEach((row, i) => {
+                                        row.forEach((value, j) => {
+                                            const intensity = Math.min(Math.max(value / (data.max || 1), 0), 1);
+                                            const color = `rgba(52, 152, 219, ${intensity})`;
+                                            html += `<div class="heatmap-cell" style="background-color: ${color}; padding: 8px; text-align: center; border-radius: 3px; font-size: 12px;" title="${data.labels.x[j]} vs ${data.labels.y[i]}: ${value}">${value.toFixed(2)}</div>`;
+                                        });
+                                    });
+
+                                    html += '</div>';
+                                    container.innerHTML = html;
+                                } else {
+                                    container.innerHTML = '<div class="text-center py-4"><p class="text-muted">Heatmap data not available</p></div>';
+                                }
+                            });
+                        </script>
+
                     {% else %}
                         <!-- Fallback: JSON Display -->
                         <div class="bg-light p-3 rounded">
-                            <small class="text-muted">Raw Data:</small>
+                            <small class="text-muted">Chart Type: {{ chart_type }} | Raw Data:</small>
                             <pre class="mt-2 mb-0"><code>{{ chart_data.data|tojson(indent=2) }}</code></pre>
                         </div>
                     {% endif %}
                 </div>
             </div>
         </div>
+        {% endif %}
         {% endfor %}
     </div>
 

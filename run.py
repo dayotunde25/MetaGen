@@ -6,7 +6,6 @@ This is the main entry point for the Flask application.
 Run this file to start the development server.
 """
 
-import os
 from app import create_app
 
 def main():
@@ -36,7 +35,7 @@ def main():
             host='127.0.0.1',
             port=5001,
             debug=True,
-            use_reloader=True,
+            use_reloader=False,  # Disable reloader to prevent double startup
             threaded=True
         )
     except KeyboardInterrupt:
