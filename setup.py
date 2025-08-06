@@ -5,15 +5,30 @@ from setuptools.command.develop import develop
 from setuptools.command.install import install
 
 def download_nltk_data():
-    """Download required NLTK data"""
+    """Download required NLTK data to a local folder."""
     import nltk
-    print("Downloading NLTK data...")
-    for package in ['punkt', 'stopwords', 'wordnet']:
+    import os
+
+    # Set download directory to be 'nltk_data' in the project root
+    download_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'nltk_data')
+    if not os.path.exists(download_dir):
+        os.makedirs(download_dir)
+    
+    # Add the custom download directory to NLTK's data path to be discovered
+    if download_dir not in nltk.data.path:
+        nltk.data.path.append(download_dir)
+
+    print(f"Downloading required NLTK data to '{download_dir}'...")
+    # Added 'averaged_perceptron_tagger' for POS tagging and 'omw-1.4' for WordNet 1.4
+    packages = ['punkt', 'stopwords', 'wordnet', 'averaged_perceptron_tagger', 'omw-1.4']
+    
+    for package in packages:
         try:
-            nltk.download(package, quiet=True)
-            print(f"✓ Downloaded NLTK {package}")
+            # NLTK's download function is idempotent, it won't re-download if already present
+            nltk.download(package, download_dir=download_dir, quiet=True)
+            print(f"✓ Verified/Downloaded NLTK package: {package}")
         except Exception as e:
-            print(f"! Failed to download NLTK {package}: {e}")
+            print(f"! Failed to download NLTK package {package}: {e}")
 
 def download_spacy_model():
     """Download SpaCy models"""
